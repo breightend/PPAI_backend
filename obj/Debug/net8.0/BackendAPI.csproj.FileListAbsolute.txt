@@ -19,11 +19,6 @@ C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\BackendAPI.Mv
 C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\BackendAPI.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets.development.json
-C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets\msbuild.BackendAPI.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets\msbuild.build.BackendAPI.props
-C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.BackendAPI.props
-C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.BackendAPI.props
-C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\scopedcss\bundle\BackendAPI.styles.css
 C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\BackendAPI.csproj.Up2Date
 C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\BackendAPI.dll
@@ -65,3 +60,8 @@ C:\Users\Usuario\Desktop\PPAI-backend\obj\Debug\net8.0\refint\BackendAPI.dll
 C:\Users\Usuario\Desktop\PPAI-backend\obj\Debug\net8.0\BackendAPI.pdb
 C:\Users\Usuario\Desktop\PPAI-backend\obj\Debug\net8.0\BackendAPI.genruntimeconfig.cache
 C:\Users\Usuario\Desktop\PPAI-backend\obj\Debug\net8.0\ref\BackendAPI.dll
+C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\bin\Debug\net8.0\BackendAPI.staticwebassets.endpoints.json
+C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\bin\Debug\net8.0\datos\datos.json
+C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\BackendAPI.sourcelink.json
+C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Users\brend\OneDrive\Desktop\PPAIJS\BackendAPI\obj\Debug\net8.0\staticwebassets.build.endpoints.json

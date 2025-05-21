@@ -1,7 +1,8 @@
 {
     "empleadoLogueado": {
       "id": 101,
-      "nombre": "Martina Rodríguez",
+      "nombre": "Martina",
+      "apellido": "González",
       "usuario": "mrodriguez",
       "rol": "Responsable de Inspecciones"
     },

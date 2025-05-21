@@ -8,5 +8,6 @@ namespace PPAI_backend.models.entities
     public class CambioEstado
     {
         public DateTime FechaHoraFin { get; set; }
+        public required Motivo Motivo { get; set; }
     }
 }

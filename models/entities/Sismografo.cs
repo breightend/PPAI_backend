@@ -7,9 +7,9 @@ namespace PPAI_backend.models.entities
 {
     public class Sismografo
     {
-          public DateTime FechaAdquisicion {  get; set; }
+        public DateTime FechaAdquisicion {  get; set; }
         public int IdentificadorSismografo { get; set; }
         public int NroSerie {  get; set; }
-        public required EstacionSismologica EstacionSismologica { get; set; }
+        public required CambioEstado CambioEstado { get; set; }
     }
 }

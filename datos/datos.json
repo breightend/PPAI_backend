@@ -1,0 +1,82 @@
+{
+    "empleadoLogueado": {
+      "id": 101,
+      "nombre": "Martina Rodríguez",
+      "usuario": "mrodriguez",
+      "rol": "Responsable de Inspecciones"
+    },
+    "ordenesInspeccion": [
+      {
+        "nroOrden": 37,
+        "fechaFinalizacion": "2025-05-20T16:30:00Z",
+        "estado": "completamente realizada",
+        "estacionSismologica": {
+          "id": "ES-401",
+          "nombre": "Estación Sismológica Norte",
+          "sismografo": {
+            "id": "SISMO-202",
+            "modelo": "GeoTech V5",
+            "estado": "habilitado",
+            "historialEstados": []
+          }
+        },
+        "tareas": [
+          { "id": 1, "descripcion": "Verificar alimentación", "resultado": "Correcto" },
+          { "id": 2, "descripcion": "Chequeo sensores", "resultado": "Correcto" },
+          { "id": 3, "descripcion": "Evaluar transmisión de datos", "resultado": "Correcto" }
+        ],
+        "observacionCierre": null,
+        "estadoFinal": null,
+        "fechaCierre": null,
+        "responsableCierre": null
+      },
+      {
+        "nroOrden": 32,
+        "fechaFinalizacion": "2025-05-15T14:10:00Z",
+        "estado": "completamente realizada",
+        "estacionSismologica": {
+          "id": "ES-305",
+          "nombre": "Estación Sur",
+          "sismografo": {
+            "id": "SISMO-154",
+            "modelo": "GeoWave XT",
+            "estado": "habilitado",
+            "historialEstados": []
+          }
+        },
+        "tareas": [
+          { "id": 1, "descripcion": "Chequeo general", "resultado": "Correcto" },
+          { "id": 2, "descripcion": "Calibración automática", "resultado": "Correcto" }
+        ],
+        "observacionCierre": null,
+        "estadoFinal": null,
+        "fechaCierre": null,
+        "responsableCierre": null
+      }
+    ],
+    "motivosFueraServicio": [
+      { "id": 1, "descripcion": "Falla en sensor de aceleración" },
+      { "id": 2, "descripcion": "Problemas con alimentación eléctrica" },
+      { "id": 3, "descripcion": "Interferencia electromagnética" },
+      { "id": 4, "descripcion": "Mantenimiento programado" },
+      { "id": 5, "descripcion": "Fallo en almacenamiento de datos" }
+    ],
+    "empleadosReparacion": [
+      {
+        "id": 301,
+        "nombre": "Lucas Prieto",
+        "correo": "lucasprieto@ccrs.gov"
+      },
+      {
+        "id": 302,
+        "nombre": "Carla Méndez",
+        "correo": "carlamendez@ccrs.gov"
+      }
+    ],
+    "notificacionesEnviadas": [],
+    "configuracionSistema": {
+      "mostrarEnPantallaCCR": true,
+      "enviarMail": true
+    }
+  }
+  

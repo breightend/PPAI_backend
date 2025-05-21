@@ -1,6 +1,7 @@
 {
   "format": 1,
   "restore": {
+<<<<<<< HEAD
     "C:\\Users\\brend\\OneDrive\\Desktop\\PPAIJS\\BackendAPI\\BackendAPI.csproj": {}
   },
   "projects": {
@@ -12,21 +13,33 @@
         "projectPath": "C:\\Users\\brend\\OneDrive\\Desktop\\PPAIJS\\BackendAPI\\BackendAPI.csproj",
         "packagesPath": "C:\\Users\\brend\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\brend\\OneDrive\\Desktop\\PPAIJS\\BackendAPI\\obj\\",
+=======
+    "/Users/martina/ppai/PPAI_backend/BackendAPI.csproj": {}
+  },
+  "projects": {
+    "/Users/martina/ppai/PPAI_backend/BackendAPI.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/martina/ppai/PPAI_backend/BackendAPI.csproj",
+        "projectName": "BackendAPI",
+        "projectPath": "/Users/martina/ppai/PPAI_backend/BackendAPI.csproj",
+        "packagesPath": "/Users/martina/.nuget/packages/",
+        "outputPath": "/Users/martina/ppai/PPAI_backend/obj/",
+>>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
+<<<<<<< HEAD
           "C:\\Users\\brend\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+=======
+          "/Users/martina/.nuget/NuGet/NuGet.Config"
+>>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,8 +57,12 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
+<<<<<<< HEAD
         },
         "SdkAnalysisLevel": "9.0.300"
+=======
+        }
+>>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
       },
       "frameworks": {
         "net8.0": {
@@ -79,7 +96,11 @@
               "privateAssets": "all"
             }
           },
+<<<<<<< HEAD
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+=======
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.409/PortableRuntimeIdentifierGraph.json"
+>>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
         }
       }
     }

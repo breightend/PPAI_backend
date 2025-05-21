@@ -10,5 +10,9 @@ namespace PPAI_backend.models.entities
         public string Correo { get; set; } = string.Empty;
         public string Contraseña { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
+
+        //Relaciones 
+
+        public required Empleado Empleado { get; set; }
     }
 }

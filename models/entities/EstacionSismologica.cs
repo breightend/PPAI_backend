@@ -16,6 +16,6 @@ namespace PPAI_backend.models.entities
 
         public required Empleado Empleado { get; set; }
         public required Estado Estado { get; set; }
-        public required EstacionSismologica EstacionRelacionada { get; set; }
+        public List<Sismografo> Sismografos { get; set; } = new();
     }
 }

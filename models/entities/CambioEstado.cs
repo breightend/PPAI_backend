@@ -11,7 +11,7 @@ namespace PPAI_backend.models.entities
         public DateTime FechaHoraFin { get; set; }
         public DateTime FechaHoraInicio { get; set; }
         public required Motivo Motivo { get; set; }
-        
+
         // Relacion con la clase Estado:
         public required Estado Estado { get; set; }
 
@@ -33,5 +33,8 @@ namespace PPAI_backend.models.entities
             return FechaHoraFin == null;
             // Que este subrayado es solo una advertencia pero esta bien
         }
+        
+        
+        
     }
 }

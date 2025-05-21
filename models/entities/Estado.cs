@@ -10,5 +10,11 @@ namespace PPAI_backend.models.entities
         public string Nombre { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
         public string Ambito { get; set; } = string.Empty;
+
+        public bool esFinalizada()
+        {
+            return Nombre == "Finalizada";
+        }
+    
     }
 }

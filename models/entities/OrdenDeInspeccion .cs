@@ -18,7 +18,7 @@ namespace PPAI_backend.models.entities
 
         public required EstacionSismologica EstacionSismologica { get; set; }
 
-
+        public required List<CambioEstado> CambioEstado { get; set; }
 
 
         // Metodos:

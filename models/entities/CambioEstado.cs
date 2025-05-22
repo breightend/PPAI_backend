@@ -10,11 +10,11 @@ namespace PPAI_backend.models.entities
         // Atributos:
         public DateTime FechaHoraFin { get; set; }
         public DateTime FechaHoraInicio { get; set; }
-        public required Motivo Motivo { get; set; }
 
         // Relacion con la clase Estado:
         public required Estado Estado { get; set; }
 
+        public required List<Motivo> Motivos { get; set; }
 
         public CambioEstado() { }
 

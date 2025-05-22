@@ -11,7 +11,7 @@ namespace PPAI_backend.models.entities
         public DateTime FechaAdquisicion { get; set; }
         public int IdentificadorSismografo { get; set; }
         public int NroSerie { get; set; }
-        public required CambioEstado CambioEstado { get; set; }
+        public required List<CambioEstado> CambioEstado { get; set; }
         
 
         // Metodos: 
@@ -22,7 +22,7 @@ namespace PPAI_backend.models.entities
 
         public void setEstadoActual(CambioEstado nuevoEstado)
         {
-            CambioEstado = nuevoEstado;
+            CambioEstado.Add(nuevoEstado);
         }
     
     }

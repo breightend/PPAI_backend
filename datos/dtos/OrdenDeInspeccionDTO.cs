@@ -1,4 +1,4 @@
-using BackendAPI.datos.dtos;
+using PPAI_backend.datos.dtos;
 using PPAI_backend.models.entities;
 
 public class DatosOI

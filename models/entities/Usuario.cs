@@ -12,7 +12,7 @@ namespace PPAI_backend.models.entities
 
         public  Empleado Empleado { get; set; }
 
-        public Empleado obtenerEmpleado()
+        public Empleado ObtenerEmpleado()
         {
             return Empleado;
         }

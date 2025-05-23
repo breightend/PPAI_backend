@@ -17,11 +17,14 @@ namespace PPAI_backend.models.entities
 
         private Empleado empleado;
 
-        public Empleado buscarEmpleadoRI()
+
+
+        public Empleado BuscarEmpleadoRI()
         {
-            empleado = actualSesion.buscarEmpleadoRI();
-            return empleado;
+            return actualSesion.Usuario.ObtenerEmpleado();
         }
+
+
         private List<OrdenDeInspeccion> ordenesInspeccion = new List<OrdenDeInspeccion>();
         private List<(MotivoDTO motivo, string comentario)> motivosSeleccionados = new();
 
@@ -54,6 +57,13 @@ namespace PPAI_backend.models.entities
         {
             return ordenes.OrderBy(o => o.FechaFin).ToList();
         }
+
+        //Esto hay que borrar! 
+        public Sesion ObtenerSesion()
+        {
+            return actualSesion;
+        }
+
 
         private OrdenDeInspeccion ordenSeleccionada;
         public void tomarOrdenSeleccionada(int numeroOrden)

@@ -14,9 +14,11 @@ namespace PPAI_backend.models.entities
 
         
 
-        public Empleado buscarEmpleadoRI()
+        public Empleado BuscarEmpleadoRI()
         {
-            return Usuario.obtenerEmpleado();
+            if (Usuario == null)
+                throw new Exception("No se encontró el usuario en la sesión.");
+            return Usuario.ObtenerEmpleado();
         } 
     }
 }

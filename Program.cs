@@ -127,9 +127,21 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
 app.MapGet("/ordenes-inspeccion", () => // Endpoint para mostrar ordenes de inspeccion:
 {
     var gestor = new GestorCerrarOrdenDeInspeccion();
-    var empleado = gestor.buscarEmpleadoRI(); 
+    var empleado = gestor.BuscarEmpleadoRI(); 
+    if (empleado == null)
+    {
+        return Results.NotFound("Empleado no encontrado.");
+    }
     var ordenes = gestor.BuscarOrdenInspeccion(empleado);
+    if (ordenes == null || ordenes.Count == 0)
+    {
+        return Results.NotFound("No se encontraron órdenes de inspección.");
+    }
     var ordenesOrdenadas = gestor.OrdenarOrdenInspeccion(ordenes);
+    if (ordenesOrdenadas == null || ordenesOrdenadas.Count == 0)
+    {
+        return Results.NotFound("No se encontraron órdenes de inspección.");
+    }
     return Results.Ok(ordenesOrdenadas);
 });
 
@@ -145,6 +157,18 @@ app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO dto) => // Endpoi
     var gestor = new GestorCerrarOrdenDeInspeccion();
     gestor.tomarMotivoFueraDeServicio(dto.Motivos);
     return Results.Ok("Motivos registrados correctamente.");
+});
+
+
+app.MapGet("/sesion", ( ) => // Endpoint para mostrar la sesion:
+{
+    var gestor = new GestorCerrarOrdenDeInspeccion();
+    var sesion = gestor.ObtenerSesion();
+    if (sesion == null)
+    {
+        return Results.NotFound("No se encontró la sesión.");
+    }
+    return Results.Ok(sesion);
 });
 
 app.Run();

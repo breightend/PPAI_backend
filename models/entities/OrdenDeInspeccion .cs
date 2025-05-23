@@ -21,6 +21,8 @@ namespace PPAI_backend.models.entities
         public required List<CambioEstado> CambioEstado { get; set; }
 
 
+
+
         // Metodos:
         public DateTime getFechaFin() { return FechaHoraFinalizacion; }
 
@@ -41,5 +43,26 @@ namespace PPAI_backend.models.entities
         {
             return EstacionSismologica.getNombreEIdentificador();
         }
+
+        public void cerrar(Estado estadoCerrada,  List<Motivo> motivosSeleccionados)
+        {
+            var estadoActual = CambioEstado.FirstOrDefault(ce => ce.esEstadoActual());
+
+            if (estadoActual != null)
+            {
+                estadoActual.setFechaHoraFin(DateTime.Now);
+            }
+            var nuevoCambio = new CambioEstado // Inicializa un nuevo objeto cambio de estado
+            {
+                FechaHoraInicio = DateTime.Now,
+                FechaHoraFin = null,
+                Estado = estadoCerrada,
+                Motivos = motivosSeleccionados
+            };
+            CambioEstado.Add(nuevoCambio);
+            FechaHoraCierre = DateTime.Now;
+        }
+
+
     }
 }

@@ -13,8 +13,9 @@ namespace PPAI_backend.models.entities
 
         public string obtenerMotivoFueraServicio()
         {
-            return $"Motivo ID: {Id} - {Descripcion}";
+            return $"Motivo ID: {Id} - {Descripcion} - Comentario: {Comentario}";
         }
+
 
 
     }

@@ -8,7 +8,7 @@ namespace PPAI_backend.models.entities
     public class CambioEstado
     {
         // Atributos:
-        public DateTime FechaHoraFin { get; set; }
+        public DateTime? FechaHoraFin { get; set; }
         public DateTime FechaHoraInicio { get; set; }
 
         // Relacion con la clase Estado:
@@ -19,9 +19,9 @@ namespace PPAI_backend.models.entities
         public CambioEstado() { }
 
         // Métodos:
-        public DateTime getFechaHoraFin()
+        public void setFechaHoraFin(DateTime fechaFin)
         {
-            return FechaHoraFin;
+            FechaHoraFin = fechaFin;
         }
 
         public Estado getEstado()
@@ -31,7 +31,6 @@ namespace PPAI_backend.models.entities
         public bool esEstadoActual()
         {
             return FechaHoraFin == null;
-            // Que este subrayado es solo una advertencia pero esta bien
         }
         
         

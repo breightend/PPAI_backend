@@ -26,7 +26,8 @@ namespace PPAI_backend.models.entities
 
 
         private List<OrdenDeInspeccion> ordenesInspeccion = new List<OrdenDeInspeccion>();
-        private List<(MotivoDTO motivo, string comentario)> motivosSeleccionados = new();
+        private List<Motivo> motivosSeleccionados = new();
+
 
 
 
@@ -82,55 +83,83 @@ namespace PPAI_backend.models.entities
 
         }
         public List<MotivoDTO> ObtenerMotivosDesdeJson()
+        {
+            string jsonPath = "datos/datos.json";
+            string json = File.ReadAllText(jsonPath);
+
+            using var doc = JsonDocument.Parse(json);
+            var motivosJson = doc.RootElement.GetProperty("motivosFueraServicio");
+
+            var motivos = new List<MotivoDTO>();
+
+            foreach (var m in motivosJson.EnumerateArray())
             {
-                string jsonPath = "datos/datos.json";
-                string json = File.ReadAllText(jsonPath);
-
-                using var doc = JsonDocument.Parse(json);
-                var motivosJson = doc.RootElement.GetProperty("motivosFueraServicio");
-
-                var motivos = new List<MotivoDTO>();
-
-                foreach (var m in motivosJson.EnumerateArray())
+                motivos.Add(new MotivoDTO
                 {
-                    motivos.Add(new MotivoDTO
-                    {
-                        Id = m.GetProperty("id").GetInt32(),
-                        Descripcion = m.GetProperty("descripcion").GetString()!
-                    });
-                }
-
-                return motivos;
+                    Id = m.GetProperty("id").GetInt32(),
+                    Descripcion = m.GetProperty("descripcion").GetString()!
+                });
             }
-            
-        // Este metodo hay que cambiarlo pq ya hay un metodo obtenerMotivo en la clase Motivo
-        public void tomarMotivoFueraDeServicio(List<MotivoSeleccionadoConComentarioDTO> seleccionados)
+
+            return motivos;
+        }
+
+
+        public void tomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
         {
             var todosLosMotivos = ObtenerMotivosDesdeJson();
 
-            foreach (var item in seleccionados)
+            foreach (var dto in seleccionados)
             {
-                var motivo = todosLosMotivos.FirstOrDefault(m => m.Id == item.IdMotivo);
-                if (motivo != null)
+                var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
+                if (baseMotivo == null)
+                    throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
+
+                // Crear un nuevo objeto motivo (el seleccionado) con el comentario agregado por el usuario.
+                var motivo = new Motivo
                 {
-                    motivosSeleccionados.Add((motivo, item.Comentario));
-                }
-                else
-                {
-                    throw new Exception($"Motivo con ID {item.IdMotivo} no encontrado.");
-                }
+                    Id = baseMotivo.Id,
+                    Descripcion = baseMotivo.Descripcion,
+                    Comentario = dto.Comentario ?? ""
+                };
+
+                motivosSeleccionados.Add(motivo);
             }
+
+            Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
         }
 
         public string confirmar()
-            {
-                if (ordenSeleccionada == null)
-                    throw new Exception("No hay una orden seleccionada para cerrar.");
+        {
+            if (ordenSeleccionada == null)
+                throw new Exception("No hay una orden seleccionada para cerrar.");
 
-                ordenSeleccionada.FechaHoraCierre = DateTime.Now; // Toma la hora de cierre de la orden de inspeccion
+            // ordenSeleccionada.FechaHoraCierre = DateTime.Now; // Toma la hora de cierre de la orden de inspeccion
 
-                return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
-            }
+            return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
+        }
+
+        public void validarObsYComentario()
+        {
+            if (ordenSeleccionada == null)
+                throw new Exception("No ha seleccionado ninguna orden de inspeccion.");
+
+            if (string.IsNullOrWhiteSpace(ordenSeleccionada.ObservacionCierre))
+                throw new Exception("Debe ingresar una observación para cerrar la orden.");
+
+            if (motivosSeleccionados == null) //|| !motivosSeleccionados.Any()
+                throw new Exception("Debe seleccionar al menos un motivo.");
+        }
+
+        public void buscarEstadoCerrada(List<Estado> estados)
+        {
+            var estadoCerrada = estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenInspeccion");
+
+            if (estadoCerrada == null)
+                throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenInspeccion'.");
+        }
+
+
 
 
     }

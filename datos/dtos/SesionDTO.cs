@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace PPAI_backend.datos.dtos
 {
-    public class CambioEstadoDto
+    public class SesionDTO
     {
         [JsonProperty("id")]
         public string Id { get; set; } = string.Empty;
@@ -17,10 +14,7 @@ namespace PPAI_backend.datos.dtos
         [JsonProperty("FechaHoraFin")]
         public DateTime? FechaHoraFin { get; set; }
         
-        [JsonProperty("EstadoId")]
-        public string EstadoId { get; set; } = string.Empty;
-        
-        [JsonProperty("Motivos")]
-        public List<int> Motivos { get; set; } = new List<int>();
+        [JsonProperty("UsuarioId")]
+        public string UsuarioId { get; set; } = string.Empty;
     }
-}
+} 

@@ -83,36 +83,24 @@ namespace PPAI_backend.models.entities
         }
         public List<MotivoDTO> ObtenerMotivosDesdeJson()
             {
-            string jsonPath = "datos/datos.json"; // Ensure this path is correct relative to your execution directory
-            string json = File.ReadAllText(jsonPath);
+                string jsonPath = "datos/datos.json";
+                string json = File.ReadAllText(jsonPath);
 
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
+                using var doc = JsonDocument.Parse(json);
+                var motivosJson = doc.RootElement.GetProperty("motivosFueraServicio");
 
-            // Check if the root element has a "motivos" property and it's an array
-            if (root.TryGetProperty("motivos", out JsonElement motivosJsonArray) && motivosJsonArray.ValueKind == JsonValueKind.Array)
-            {
                 var motivos = new List<MotivoDTO>();
 
-                foreach (var m in motivosJsonArray.EnumerateArray())
+                foreach (var m in motivosJson.EnumerateArray())
                 {
-                motivos.Add(new MotivoDTO
-                {
-                    Id = m.GetProperty("id").GetInt32(),
-                    Descripcion = m.GetProperty("descripcion").GetString()!
-                    // The "comentario" field from the JSON is not mapped to MotivoDTO
-                });
+                    motivos.Add(new MotivoDTO
+                    {
+                        Id = m.GetProperty("id").GetInt32(),
+                        Descripcion = m.GetProperty("descripcion").GetString()!
+                    });
                 }
+
                 return motivos;
-            }
-            else
-            {
-                // Handle the case where "motivos" property is not found or is not an array
-                // This could be returning an empty list, throwing an exception, or logging an error
-                // For now, returning an empty list or throwing an exception might be appropriate.
-                // Let's throw an exception if the structure is not as expected.
-                throw new JsonException("JSON structure does not contain a 'motivos' array or it's not in the expected format.");
-            }
             }
             
         // Este metodo hay que cambiarlo pq ya hay un metodo obtenerMotivo en la clase Motivo

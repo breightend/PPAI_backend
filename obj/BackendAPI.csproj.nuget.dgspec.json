@@ -1,10 +1,6 @@
 {
   "format": 1,
   "restore": {
-<<<<<<< HEAD
-    "C:\\Users\\Brenda\\Desktop\\PPAI_backend_Marti\\PPAI_backend\\BackendAPI.csproj": {}
-=======
-<<<<<<< HEAD
     "C:\\Users\\brend\\OneDrive\\Desktop\\PPAIJS\\BackendAPI\\BackendAPI.csproj": {}
   },
   "projects": {
@@ -16,44 +12,14 @@
         "projectPath": "C:\\Users\\brend\\OneDrive\\Desktop\\PPAIJS\\BackendAPI\\BackendAPI.csproj",
         "packagesPath": "C:\\Users\\brend\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\brend\\OneDrive\\Desktop\\PPAIJS\\BackendAPI\\obj\\",
-=======
-    "/Users/martina/ppai/PPAI_backend/BackendAPI.csproj": {}
->>>>>>> db1e1643e76fcc27667619d26153a938ecf2c51c
-  },
-  "projects": {
-    "C:\\Users\\Brenda\\Desktop\\PPAI_backend_Marti\\PPAI_backend\\BackendAPI.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "C:\\Users\\Brenda\\Desktop\\PPAI_backend_Marti\\PPAI_backend\\BackendAPI.csproj",
-        "projectName": "BackendAPI",
-<<<<<<< HEAD
-        "projectPath": "C:\\Users\\Brenda\\Desktop\\PPAI_backend_Marti\\PPAI_backend\\BackendAPI.csproj",
-        "packagesPath": "C:\\Users\\Brenda\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Brenda\\Desktop\\PPAI_backend_Marti\\PPAI_backend\\obj\\",
-=======
-        "projectPath": "/Users/martina/ppai/PPAI_backend/BackendAPI.csproj",
-        "packagesPath": "/Users/martina/.nuget/packages/",
-        "outputPath": "/Users/martina/ppai/PPAI_backend/obj/",
->>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
->>>>>>> db1e1643e76fcc27667619d26153a938ecf2c51c
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-<<<<<<< HEAD
-          "C:\\Users\\Brenda\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-=======
-<<<<<<< HEAD
           "C:\\Users\\brend\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-=======
-          "/Users/martina/.nuget/NuGet/NuGet.Config"
->>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
->>>>>>> db1e1643e76fcc27667619d26153a938ecf2c51c
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -78,17 +44,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-<<<<<<< HEAD
-        },
-        "SdkAnalysisLevel": "9.0.200"
-=======
-<<<<<<< HEAD
         },
         "SdkAnalysisLevel": "9.0.300"
-=======
-        }
->>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
->>>>>>> db1e1643e76fcc27667619d26153a938ecf2c51c
       },
       "frameworks": {
         "net8.0": {
@@ -114,24 +71,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.15, 8.0.15]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[8.0.15, 8.0.15]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.15, 8.0.15]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[8.0.15, 8.0.15]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -140,15 +79,7 @@
               "privateAssets": "all"
             }
           },
-<<<<<<< HEAD
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
-=======
-<<<<<<< HEAD
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
-=======
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.409/PortableRuntimeIdentifierGraph.json"
->>>>>>> 2a4ec7e4b00ea75244f6a415d4ce481b4c7cbb64
->>>>>>> db1e1643e76fcc27667619d26153a938ecf2c51c
         }
       }
     }

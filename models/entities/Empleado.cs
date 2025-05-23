@@ -11,7 +11,6 @@ namespace PPAI_backend.models.entities
         public string Nombre { get; set; } = string.Empty;
         public string Mail { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
-        public required Usuario Usuario { get; set; }
         public required Rol Rol { get; set; }
 
         // Metodos:

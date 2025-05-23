@@ -7,9 +7,8 @@ namespace PPAI_backend.models.entities
 {
     public class Usuario
     {
-        public string Correo { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = string.Empty;
         public string Contraseña { get; set; } = string.Empty;
-        public string Telefono { get; set; } = string.Empty;
 
         public  Empleado Empleado { get; set; }
 

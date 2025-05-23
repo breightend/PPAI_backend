@@ -27,8 +27,6 @@ namespace PPAI_backend.models.entities
 
 
 
-
-
         public List<DatosOI> BuscarOrdenInspeccion(Empleado empleado)
         {
             List<DatosOI> resultado = new List<DatosOI>();
@@ -65,6 +63,7 @@ namespace PPAI_backend.models.entities
             if (ordenSeleccionada == null)
                 throw new Exception($"No se encontró la orden número: {numeroOrden} en la lista mostrada anteriormente.");
         }
+
         public void tomarObservacion(string observacion)
         {
             if (ordenSeleccionada == null)

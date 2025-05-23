@@ -87,7 +87,7 @@ var sismografos = dataLoader.GetSismografosPorEstado("Operativo");
 
 ## Endpoints de Ejemplo
 
-El proyecto incluye endpoints de ejemplo que demuestran el uso:
+El proyecto incluye endpoints:
 
 - `GET /datos-json` - Carga todos los datos y muestra estadísticas
 - `GET /empleados-json` - Obtiene la lista de empleados desde JSON
@@ -113,10 +113,6 @@ El `JsonMappingService` mantiene un cache interno de entidades mapeadas para:
 - Manejo de referencias faltantes
 - Excepciones descriptivas
 
-### 4. Flexibilidad
-- No requiere modificar las clases de entidades existentes
-- Permite agregar nuevos DTOs fácilmente
-- Separación clara entre datos JSON y modelo de dominio
 
 ## Estructura del JSON Esperado
 
@@ -133,11 +129,3 @@ El `JsonMappingService` mantiene un cache interno de entidades mapeadas para:
   "sesiones": [...]
 }
 ```
-
-## Notas Técnicas
-
-- Usa Newtonsoft.Json para la deserialización
-- Maneja valores nulos y opcionales apropiadamente
-- Convierte fechas automáticamente
-- Preserva las relaciones entre entidades
-- Optimizado para archivos JSON grandes 

@@ -127,7 +127,7 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
 app.MapGet("/ordenes-inspeccion", () => // Endpoint para mostrar ordenes de inspeccion:
 {
     var gestor = new GestorCerrarOrdenDeInspeccion();
-    var empleado = gestor.buscarEmpleadoRI(); // Esto tambien podemos pasarlo directamente como parametro
+    var empleado = gestor.buscarEmpleadoRI(); 
     var ordenes = gestor.BuscarOrdenInspeccion(empleado);
     var ordenesOrdenadas = gestor.OrdenarOrdenInspeccion(ordenes);
     return Results.Ok(ordenesOrdenadas);

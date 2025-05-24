@@ -42,7 +42,18 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
-
+app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        var empleado = gestor.BuscarEmpleadoRI();
+        return Results.Ok(empleado);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
 
 
 // Endpoint que carga todos los datos y devuelve todos los objetos generados
@@ -86,15 +97,7 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
 });
 
 
-app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
-{
-    var empleado = gestor.BuscarEmpleadoRI();
-    if (empleado == null)
-    {
-        return Results.NotFound("No se encontró empleado logueado.");
-    }
-    return Results.Ok(empleado);
-});
+
 
 app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar ordenes de inspeccion:
 {

@@ -27,11 +27,25 @@ namespace PPAI_backend.models.entities
         }
 
 
-        public Empleado? BuscarEmpleadoRI()
+  
+        public Sesion? ObtenerSesionActiva()
         {
-            
-            return actualSesion.Usuario?.Empleado;
+            // Implementa la lógica para obtener la sesión activa
+            return _dataLoader.Sesiones.FirstOrDefault(s => s.FechaHoraFin == default);
         }
+
+        
+        public Empleado BuscarEmpleadoRI()
+        {
+            var sesionActiva = ObtenerSesionActiva();
+
+            if (sesionActiva == null)
+                throw new Exception("No hay sesión activa");
+
+            return sesionActiva.BuscarEmpleadoRI();
+        }
+
+
         private List<Motivo> motivosSeleccionados = new();
 
 
@@ -89,30 +103,30 @@ namespace PPAI_backend.models.entities
         }
 
 
-/*         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
-        {
-            var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
-
-            foreach (var dto in seleccionados)
-            {
-                var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
-                if (baseMotivo == null)
-                    throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
-
-                // Crear un nuevo objeto motivo (el seleccionado) con el comentario agregado por el usuario.
-                var motivo = new Motivo
+        /*         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
                 {
-                    Id = baseMotivo.Id,
-                    Descripcion = baseMotivo.Descripcion,
-                    Comentario = dto.Comentario ?? ""
-                };
+                    var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
 
-                motivosSeleccionados.Add(motivo);
-            }
+                    foreach (var dto in seleccionados)
+                    {
+                        var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
+                        if (baseMotivo == null)
+                            throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
 
-            Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
-        }
- */
+                        // Crear un nuevo objeto motivo (el seleccionado) con el comentario agregado por el usuario.
+                        var motivo = new Motivo
+                        {
+                            Id = baseMotivo.Id,
+                            Descripcion = baseMotivo.Descripcion,
+                            Comentario = dto.Comentario ?? ""
+                        };
+
+                        motivosSeleccionados.Add(motivo);
+                    }
+
+                    Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
+                }
+         */
         public string Confirmar()
         {
             if (ordenSeleccionada == null)

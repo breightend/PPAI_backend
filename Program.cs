@@ -17,11 +17,19 @@ builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 var app = builder.Build();
 
 // Cargar todos los datos al inicio de la aplicación
-using (var scope = app.Services.CreateScope())
+try
 {
-    var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoaderService>();
-    await dataLoader.LoadAllDataAsync("datos/datos.json");
-    Console.WriteLine("✅ Datos cargados exitosamente al iniciar la aplicación");
+    using (var scope = app.Services.CreateScope())
+    {
+        var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoaderService>();
+        await dataLoader.LoadAllDataAsync("datos/datos.json");
+        Console.WriteLine("✅ Datos cargados exitosamente al iniciar la aplicación");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"❌ Error al cargar datos iniciales: {ex.Message}");
+    throw; // Stop application if data loading fails
 }
 
 // Configure the HTTP request pipeline.
@@ -34,45 +42,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
-// Nuevo endpoint para cargar y mostrar datos desde JSON
-app.MapGet("/datos-json", async (DataLoaderService dataLoader) =>
-{
-    try
-    {
-        await dataLoader.LoadAllDataAsync("datos/datos.json");
 
-        return Results.Ok(new
-        {
-            message = "Datos cargados exitosamente",
-            empleados = dataLoader.Empleados.Count,
-            usuarios = dataLoader.Usuarios.Count,
-            estados = dataLoader.Estados.Count,
-            motivos = dataLoader.Motivos.Count,
-            sismografos = dataLoader.Sismografos.Count,
-            estacionesSismologicas = dataLoader.EstacionesSismologicas.Count,
-            ordenesDeInspeccion = dataLoader.OrdenesDeInspeccion.Count,
-            sesiones = dataLoader.Sesiones.Count
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest($"Error al cargar datos: {ex.Message}");
-    }
-});
 
-// Endpoint para obtener empleados desde JSON
-app.MapGet("/empleados-json", async (DataLoaderService dataLoader) =>
-{
-    try
-    {
-        await dataLoader.LoadAllDataAsync("datos/datos.json");
-        return Results.Ok(dataLoader.Empleados);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest($"Error: {ex.Message}");
-    }
-});
 
 // Endpoint que carga todos los datos y devuelve todos los objetos generados
 app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
@@ -114,6 +85,17 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
     }
 });
 
+
+app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    var empleado = gestor.BuscarEmpleadoRI();
+    if (empleado == null)
+    {
+        return Results.NotFound("No se encontró empleado logueado.");
+    }
+    return Results.Ok(empleado);
+});
+
 app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar ordenes de inspeccion:
 {
     var empleado = gestor.BuscarEmpleadoRI();
@@ -136,7 +118,7 @@ app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) => // E
 
 app.MapGet("/motivos", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar Motivos:
 {
-    var motivos = gestor.ObtenerMotivosDesdeJson();
+    var motivos = gestor.BuscarMotivoFueraDeServicio();
     return Results.Ok(motivos);
 });
 
@@ -164,31 +146,20 @@ app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO dto, DataLoaderSe
     return Results.Ok("Motivos registrados correctamente.");
 });
 
-//Anda Bien! 
-app.MapGet("/sesion", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar la sesion:
-{
-    var sesion = gestor.ObtenerSesion();
-    if (sesion == null)
-    {
-        return Results.NotFound("No se encontró la sesión.");
-    }
-    return Results.Ok(sesion);
-});
-
 // Nuevos endpoints para el flujo completo de cierre de órdenes
 
-app.MapPost("/seleccionar-orden", (int numeroOrden, GestorCerrarOrdenDeInspeccion gestor) =>
+/* app.MapPost("/seleccionar-orden", (int numeroOrden, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        gestor.tomarOrdenSeleccionada(numeroOrden);
+        gestor.TomarMotivoFueraDeServicio(numeroOrden);
         return Results.Ok($"Orden {numeroOrden} seleccionada correctamente.");
     }
     catch (Exception ex)
     {
         return Results.BadRequest($"Error al seleccionar orden: {ex.Message}");
     }
-});
+}); */
 
 app.MapPost("/agregar-observacion", (string observacion, GestorCerrarOrdenDeInspeccion gestor) =>
 {
@@ -203,11 +174,11 @@ app.MapPost("/agregar-observacion", (string observacion, GestorCerrarOrdenDeInsp
     }
 });
 
-app.MapPost("/registrar-motivos", (List<MotivoDTO> motivosSeleccionados, GestorCerrarOrdenDeInspeccion gestor) =>
+/* app.MapPost("/registrar-motivos", (List<MotivoDTO> motivosSeleccionados, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        gestor.tomarMotivoFueraDeServicio(motivosSeleccionados);
+        gestor.TomarMotivoFueraDeServicio(motivosSeleccionados);
         return Results.Ok("Motivos registrados correctamente.");
     }
     catch (Exception ex)
@@ -215,7 +186,7 @@ app.MapPost("/registrar-motivos", (List<MotivoDTO> motivosSeleccionados, GestorC
         return Results.BadRequest($"Error al registrar motivos: {ex.Message}");
     }
 });
-
+ */
 app.MapPost("/cerrar-orden", (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
@@ -230,16 +201,33 @@ app.MapPost("/cerrar-orden", (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
-//Anda Bien! 
-app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
+
+// Nuevo endpoint para cargar y mostrar datos desde JSON
+app.MapGet("/datos-json", async (DataLoaderService dataLoader) =>
 {
-    var empleado = gestor.BuscarEmpleadoRI();
-    if (empleado == null)
+    try
     {
-        return Results.NotFound("No se encontró empleado logueado.");
+        await dataLoader.LoadAllDataAsync("datos/datos.json");
+
+        return Results.Ok(new
+        {
+            message = "Datos cargados exitosamente",
+            empleados = dataLoader.Empleados.Count,
+            usuarios = dataLoader.Usuarios.Count,
+            estados = dataLoader.Estados.Count,
+            motivos = dataLoader.Motivos.Count,
+            sismografos = dataLoader.Sismografos.Count,
+            estacionesSismologicas = dataLoader.EstacionesSismologicas.Count,
+            ordenesDeInspeccion = dataLoader.OrdenesDeInspeccion.Count,
+            sesiones = dataLoader.Sesiones.Count
+        });
     }
-    return Results.Ok(empleado);
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al cargar datos: {ex.Message}");
+    }
 });
+
 
 app.Run();
 

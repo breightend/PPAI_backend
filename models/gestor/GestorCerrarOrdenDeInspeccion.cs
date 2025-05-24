@@ -29,17 +29,10 @@ namespace PPAI_backend.models.entities
 
         public Empleado? BuscarEmpleadoRI()
         {
-            // Obtener el empleado desde la sesión
-            empleado = actualSesion.BuscarEmpleadoRI();
-
-            if (empleado == null)
-                throw new Exception("No se encontró el empleado en la sesión.");
-
-            return empleado;
+            
+            return actualSesion.Usuario?.Empleado;
         }
         private List<Motivo> motivosSeleccionados = new();
-
-
 
 
         public List<DatosOI> BuscarOrdenInspeccion(Empleado empleado)
@@ -71,11 +64,6 @@ namespace PPAI_backend.models.entities
             return ordenes.OrderBy(o => o.FechaFin).ToList();
         }
 
-        public Sesion ObtenerSesion()
-        {
-            // Obtener la sesión desde los datos cargados
-            return _dataLoader.Sesiones.FirstOrDefault() ?? actualSesion;
-        }
 
 
         private OrdenDeInspeccion? ordenSeleccionada;
@@ -94,20 +82,16 @@ namespace PPAI_backend.models.entities
             ordenSeleccionada.ObservacionCierre = observacion;
 
         }
-        public List<MotivoDTO> ObtenerMotivosDesdeJson()
+
+        public List<Motivo> BuscarMotivoFueraDeServicio()
         {
-            // Usar los motivos cargados desde el DataLoader
-            return _dataLoader.Motivos.Select(m => new MotivoDTO
-            {
-                Id = m.Id,
-                Descripcion = m.Descripcion
-            }).ToList();
+            return Motivo.ObtenerMotivoFueraServicio(_dataLoader);
         }
 
 
-        public void tomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
+/*         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
         {
-            var todosLosMotivos = ObtenerMotivosDesdeJson();
+            var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
 
             foreach (var dto in seleccionados)
             {
@@ -128,7 +112,7 @@ namespace PPAI_backend.models.entities
 
             Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
         }
-
+ */
         public string Confirmar()
         {
             if (ordenSeleccionada == null)

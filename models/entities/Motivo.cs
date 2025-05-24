@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PPAI_backend.services;
 
 namespace PPAI_backend.models.entities
 {
@@ -9,11 +10,11 @@ namespace PPAI_backend.models.entities
     {
         public int Id { get; set; }
         public string Descripcion { get; set; }
-        public string? Comentario { get; set; } // significa que es opcional (puede ser null)
-
-        public string obtenerMotivoFueraServicio()
+        public string? Comentario { get; set; }
+        
+        public static List<Motivo> ObtenerMotivoFueraServicio(DataLoaderService dataLoader)
         {
-            return $"Motivo ID: {Id} - {Descripcion} - Comentario: {Comentario}";
+           return dataLoader.Motivos;
         }
 
 

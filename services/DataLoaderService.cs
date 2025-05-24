@@ -20,6 +20,9 @@ namespace PPAI_backend.services
         public List<OrdenDeInspeccion> OrdenesDeInspeccion { get; private set; } = new();
         public List<Sesion> Sesiones { get; private set; } = new();
 
+        // Lista para almacenar motivos seleccionados temporalmente
+        public List<Motivo> MotivosSeleccionados { get; private set; } = new();
+
         public DataLoaderService()
         {
             _mappingService = new JsonMappingService();
@@ -105,5 +108,14 @@ namespace PPAI_backend.services
             _mappingService.ClearCache();
             await LoadAllDataAsync(jsonFilePath);
         }
+
+        /// <summary>
+        /// Guarda los motivos seleccionados (puedes adaptar la lógica según tu necesidad)
+        /// </summary>
+        public void GuardarMotivosSeleccionados(List<Motivo> motivos)
+        {
+            MotivosSeleccionados.Clear();
+            MotivosSeleccionados.AddRange(motivos);
+        }
     }
-} 
+}

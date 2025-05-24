@@ -152,10 +152,26 @@ app.MapGet("/motivos", () => // Endpoint para mostrar Motivos:
     return Results.Ok(motivos);
 });
 
-app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO dto) => // Endpoint para tomar y guardar los motivos seleccionados + comentarios en una lista 
+app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO dto, DataLoaderService dataLoader) =>
 {
-    var gestor = new GestorCerrarOrdenDeInspeccion();
-    gestor.tomarMotivoFueraDeServicio(dto.Motivos);
+    // Mapear los DTOs a entidades Motivo usando los datos base de motivos
+    var motivosBase = dataLoader.Motivos;
+    var motivosSeleccionados = dto.Motivos
+        .Select(m => {
+            var baseMotivo = motivosBase.FirstOrDefault(b => b.Id == m.IdMotivo);
+            return baseMotivo == null
+                ? null
+                : new Motivo
+                {
+                    Id = baseMotivo.Id,
+                    Descripcion = baseMotivo.Descripcion,
+                    Comentario = m.Comentario
+                };
+        })
+        .Where(m => m != null)
+        .ToList();
+
+    dataLoader.GuardarMotivosSeleccionados(motivosSeleccionados!);
     return Results.Ok("Motivos registrados correctamente.");
 });
 

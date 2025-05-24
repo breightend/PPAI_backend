@@ -4,28 +4,39 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json;
 using PPAI_backend.datos.dtos;
+using PPAI_backend.services;
 
 
 namespace PPAI_backend.models.entities
 {
     public class GestorCerrarOrdenDeInspeccion
     {
+        private readonly DataLoaderService _dataLoader;
+
         private Sesion actualSesion = new Sesion
         {
             Usuario = new Usuario()
         };
 
-        private Empleado empleado;
+        private Empleado? empleado;
 
-
-
-        public Empleado BuscarEmpleadoRI()
+        // Constructor que recibe el DataLoaderService
+        public GestorCerrarOrdenDeInspeccion(DataLoaderService dataLoader)
         {
-            return actualSesion.Usuario.ObtenerEmpleado();
+            _dataLoader = dataLoader;
         }
 
 
-        private List<OrdenDeInspeccion> ordenesInspeccion = new List<OrdenDeInspeccion>();
+        public Empleado? BuscarEmpleadoRI()
+        {
+            // Obtener el empleado desde la sesión
+            empleado = actualSesion.BuscarEmpleadoRI();
+
+            if (empleado == null)
+                throw new Exception("No se encontró el empleado en la sesión.");
+
+            return empleado;
+        }
         private List<Motivo> motivosSeleccionados = new();
 
 
@@ -35,7 +46,8 @@ namespace PPAI_backend.models.entities
         {
             List<DatosOI> resultado = new List<DatosOI>();
 
-            foreach (var oi in ordenesInspeccion)
+            // Usar los datos cargados del DataLoader en lugar de leer el JSON directamente
+            foreach (var oi in _dataLoader.OrdenesDeInspeccion)
             {
                 if (oi.esDelEmpleado(empleado) && oi.estaRealizada())
                 {
@@ -45,7 +57,7 @@ namespace PPAI_backend.models.entities
                     resultado.Add(new DatosOI
                     {
                         Numero = oi.getNumeroOrden(),
-                        FechaFin = oi.getFechaFin(), // o fecha cierre según tu diseño
+                        FechaFin = oi.getFechaFin(),
                         NombreEstacion = nombreEstacion,
                         IdSismografo = idSismografo
                     });
@@ -59,17 +71,17 @@ namespace PPAI_backend.models.entities
             return ordenes.OrderBy(o => o.FechaFin).ToList();
         }
 
-        //Esto hay que borrar! 
         public Sesion ObtenerSesion()
         {
-            return actualSesion;
+            // Obtener la sesión desde los datos cargados
+            return _dataLoader.Sesiones.FirstOrDefault() ?? actualSesion;
         }
 
 
-        private OrdenDeInspeccion ordenSeleccionada;
+        private OrdenDeInspeccion? ordenSeleccionada;
         public void tomarOrdenSeleccionada(int numeroOrden)
         {
-            ordenSeleccionada = ordenesInspeccion.FirstOrDefault(oi => oi.getNumeroOrden() == numeroOrden);
+            ordenSeleccionada = _dataLoader.OrdenesDeInspeccion.FirstOrDefault(oi => oi.getNumeroOrden() == numeroOrden);
 
             if (ordenSeleccionada == null)
                 throw new Exception($"No se encontró la orden número: {numeroOrden} en la lista mostrada anteriormente.");
@@ -84,24 +96,12 @@ namespace PPAI_backend.models.entities
         }
         public List<MotivoDTO> ObtenerMotivosDesdeJson()
         {
-            string jsonPath = "datos/datos.json";
-            string json = File.ReadAllText(jsonPath);
-
-            using var doc = JsonDocument.Parse(json);
-            var motivosJson = doc.RootElement.GetProperty("motivosFueraServicio");
-
-            var motivos = new List<MotivoDTO>();
-
-            foreach (var m in motivosJson.EnumerateArray())
+            // Usar los motivos cargados desde el DataLoader
+            return _dataLoader.Motivos.Select(m => new MotivoDTO
             {
-                motivos.Add(new MotivoDTO
-                {
-                    Id = m.GetProperty("id").GetInt32(),
-                    Descripcion = m.GetProperty("descripcion").GetString()!
-                });
-            }
-
-            return motivos;
+                Id = m.Id,
+                Descripcion = m.Descripcion
+            }).ToList();
         }
 
 
@@ -129,7 +129,7 @@ namespace PPAI_backend.models.entities
             Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
         }
 
-        public string confirmar()
+        public string Confirmar()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para cerrar.");
@@ -139,7 +139,7 @@ namespace PPAI_backend.models.entities
             return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
         }
 
-        public void validarObsYComentario()
+        public void ValidarObsYComentario()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No ha seleccionado ninguna orden de inspeccion.");
@@ -150,17 +150,29 @@ namespace PPAI_backend.models.entities
             if (motivosSeleccionados == null) //|| !motivosSeleccionados.Any()
                 throw new Exception("Debe seleccionar al menos un motivo.");
         }
-
-        public void buscarEstadoCerrada(List<Estado> estados)
+        public void BuscarEstadoCerrada()
         {
-            var estadoCerrada = estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenInspeccion");
+            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenInspeccion");
 
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenInspeccion'.");
         }
 
+        // Método para cerrar la orden de inspección
+        public string CerrarOrdenSeleccionada()
+        {
+            if (ordenSeleccionada == null)
+                throw new Exception("No hay una orden seleccionada para cerrar.");
 
+            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenInspeccion");
+            if (estadoCerrada == null)
+                throw new Exception("No se encontró el estado 'Cerrada'.");
 
+            // Llamar al método cerrar de la orden con el estado y motivos
+            ordenSeleccionada.cerrar(estadoCerrada, motivosSeleccionados);
+
+            return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
+        }        // Método para obtener el empleado desde los datos cargados
 
     }
 }

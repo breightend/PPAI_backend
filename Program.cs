@@ -12,8 +12,17 @@ builder.Services.AddSwaggerGen();
 // Registrar nuestros servicios
 builder.Services.AddSingleton<JsonMappingService>();
 builder.Services.AddSingleton<DataLoaderService>();
+builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 
 var app = builder.Build();
+
+// Cargar todos los datos al inicio de la aplicación
+using (var scope = app.Services.CreateScope())
+{
+    var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoaderService>();
+    await dataLoader.LoadAllDataAsync("datos/datos.json");
+    Console.WriteLine("✅ Datos cargados exitosamente al iniciar la aplicación");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -24,25 +33,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/brenda", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
 
 // Nuevo endpoint para cargar y mostrar datos desde JSON
 app.MapGet("/datos-json", async (DataLoaderService dataLoader) =>
@@ -50,7 +40,7 @@ app.MapGet("/datos-json", async (DataLoaderService dataLoader) =>
     try
     {
         await dataLoader.LoadAllDataAsync("datos/datos.json");
-        
+
         return Results.Ok(new
         {
             message = "Datos cargados exitosamente",
@@ -90,7 +80,7 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
     try
     {
         await dataLoader.LoadAllDataAsync("datos/datos.json");
-        
+
         return Results.Ok(new
         {
             message = "Todos los datos cargados y mapeados exitosamente",
@@ -124,10 +114,9 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
     }
 });
 
-app.MapGet("/ordenes-inspeccion", () => // Endpoint para mostrar ordenes de inspeccion:
+app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar ordenes de inspeccion:
 {
-    var gestor = new GestorCerrarOrdenDeInspeccion();
-    var empleado = gestor.BuscarEmpleadoRI(); 
+    var empleado = gestor.BuscarEmpleadoRI();
     if (empleado == null)
     {
         return Results.NotFound("Empleado no encontrado.");
@@ -145,9 +134,8 @@ app.MapGet("/ordenes-inspeccion", () => // Endpoint para mostrar ordenes de insp
     return Results.Ok(ordenesOrdenadas);
 });
 
-app.MapGet("/motivos", () => // Endpoint para mostrar Motivos:
+app.MapGet("/motivos", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar Motivos:
 {
-    var gestor = new GestorCerrarOrdenDeInspeccion();
     var motivos = gestor.ObtenerMotivosDesdeJson();
     return Results.Ok(motivos);
 });
@@ -157,7 +145,8 @@ app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO dto, DataLoaderSe
     // Mapear los DTOs a entidades Motivo usando los datos base de motivos
     var motivosBase = dataLoader.Motivos;
     var motivosSeleccionados = dto.Motivos
-        .Select(m => {
+        .Select(m =>
+        {
             var baseMotivo = motivosBase.FirstOrDefault(b => b.Id == m.IdMotivo);
             return baseMotivo == null
                 ? null
@@ -175,10 +164,9 @@ app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO dto, DataLoaderSe
     return Results.Ok("Motivos registrados correctamente.");
 });
 
-
-app.MapGet("/sesion", ( ) => // Endpoint para mostrar la sesion:
+//Anda Bien! 
+app.MapGet("/sesion", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar la sesion:
 {
-    var gestor = new GestorCerrarOrdenDeInspeccion();
     var sesion = gestor.ObtenerSesion();
     if (sesion == null)
     {
@@ -187,9 +175,96 @@ app.MapGet("/sesion", ( ) => // Endpoint para mostrar la sesion:
     return Results.Ok(sesion);
 });
 
+// Nuevos endpoints para el flujo completo de cierre de órdenes
+
+app.MapPost("/seleccionar-orden", (int numeroOrden, GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        gestor.tomarOrdenSeleccionada(numeroOrden);
+        return Results.Ok($"Orden {numeroOrden} seleccionada correctamente.");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al seleccionar orden: {ex.Message}");
+    }
+});
+
+app.MapPost("/agregar-observacion", (string observacion, GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        gestor.tomarObservacion(observacion);
+        return Results.Ok("Observación agregada correctamente.");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al agregar observación: {ex.Message}");
+    }
+});
+
+app.MapPost("/registrar-motivos", (List<MotivoDTO> motivosSeleccionados, GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        gestor.tomarMotivoFueraDeServicio(motivosSeleccionados);
+        return Results.Ok("Motivos registrados correctamente.");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al registrar motivos: {ex.Message}");
+    }
+});
+
+app.MapPost("/cerrar-orden", (GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        gestor.ValidarObsYComentario();
+        var resultado = gestor.CerrarOrdenSeleccionada();
+        return Results.Ok(resultado);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al cerrar orden: {ex.Message}");
+    }
+});
+
+//Anda Bien! 
+app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    var empleado = gestor.BuscarEmpleadoRI();
+    if (empleado == null)
+    {
+        return Results.NotFound("No se encontró empleado logueado.");
+    }
+    return Results.Ok(empleado);
+});
+
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+async Task CargarDatosIniciales(IServiceProvider services)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    using var scope = services.CreateScope();
+    var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoaderService>();
+
+    try
+    {
+        await dataLoader.LoadAllDataAsync("datos/datos.json");
+        Console.WriteLine("✅ Datos iniciales cargados correctamente al iniciar la aplicación");
+        Console.WriteLine($"📊 Resumen de datos cargados:");
+        Console.WriteLine($"   - {dataLoader.Empleados.Count} empleados");
+        Console.WriteLine($"   - {dataLoader.Usuarios.Count} usuarios");
+        Console.WriteLine($"   - {dataLoader.Estados.Count} estados");
+        Console.WriteLine($"   - {dataLoader.Motivos.Count} motivos");
+        Console.WriteLine($"   - {dataLoader.Sismografos.Count} sismógrafos");
+        Console.WriteLine($"   - {dataLoader.EstacionesSismologicas.Count} estaciones sismológicas");
+        Console.WriteLine($"   - {dataLoader.OrdenesDeInspeccion.Count} órdenes de inspección");
+        Console.WriteLine($"   - {dataLoader.Sesiones.Count} sesiones");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al cargar datos iniciales: {ex.Message}");
+        throw; // This will stop the application if data loading fails
+    }
 }

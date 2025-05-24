@@ -53,10 +53,9 @@ namespace PPAI_backend.models.entities
         {
             List<DatosOI> resultado = new List<DatosOI>();
 
-            // Usar los datos cargados del DataLoader en lugar de leer el JSON directamente
             foreach (var oi in _dataLoader.OrdenesDeInspeccion)
             {
-                if (oi.esDelEmpleado(empleado) && oi.estaRealizada())
+                if (oi.EsDelEmpleado(empleado) && oi.EstaRealizada())
                 {
                     var nombreEstacion = oi.getDatosEstacion().NombreEstacion;
                     var idSismografo = oi.getDatosEstacion().IdentificadorSismografo;

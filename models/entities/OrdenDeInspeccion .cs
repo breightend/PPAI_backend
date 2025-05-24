@@ -29,12 +29,12 @@ namespace PPAI_backend.models.entities
         public int getNumeroOrden() { return NumeroOrden; }
         public string getObservacionCierre() { return ObservacionCierre; }
 
-        public Boolean esDelEmpleado(Empleado empleadoLogueado)
+        public Boolean EsDelEmpleado(Empleado empleadoLogueado)
         {
             return Empleado.Nombre == empleadoLogueado.Nombre && Empleado.Apellido == empleadoLogueado.Apellido;
         }
         public DateTime getFechaHoraCierre() { return FechaHoraCierre; }
-        public bool estaRealizada()
+        public bool EstaRealizada()
         {
             return Estado.esFinalizada() == true;
         }

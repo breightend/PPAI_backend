@@ -141,6 +141,39 @@
           "Motivos": []
         }
       ]
+    },{
+      "id": "oi001",
+      "NumeroOrden": 2025002,
+      "FechaHoraInicio": "2025-06-20T10:00:00Z",
+      "FechaHoraFinalizacion": "2025-06-22T18:00:00Z", 
+      "FechaHoraCierre": null, 
+      "ObservacionCierre": null, 
+      "EmpleadoId": "emp001", 
+      "EstadoId": "estado_oi_3", 
+      "EstacionSismologicaId": "es001",
+      "CambioEstado": [
+        {
+          "id": "ce_oi_001_1",
+          "FechaHoraInicio": "2025-05-19T10:00:00Z",
+          "FechaHoraFin": "2025-05-20T08:59:59Z",
+          "EstadoId": "estado_oi_1", 
+          "Motivos": []
+        },
+        {
+          "id": "ce_oi_001_2",
+          "FechaHoraInicio": "2025-05-20T09:00:00Z",
+          "FechaHoraFin": "2025-05-22T16:59:59Z",
+          "EstadoId": "estado_oi_2", 
+          "Motivos": []
+        },
+        {
+          "id": "ce_oi_001_3",
+          "FechaHoraInicio": "2025-05-22T17:00:00Z",
+          "FechaHoraFin": null, 
+          "EstadoId": "estado_oi_3", 
+          "Motivos": []
+        }
+      ]
     }
   ],
   "sesiones": [

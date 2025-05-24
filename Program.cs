@@ -55,6 +55,32 @@ app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
+app.MapGet("/motivos", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar Motivos:
+{
+    var motivos = gestor.BuscarMotivoFueraDeServicio();
+    return Results.Ok(motivos);
+});
+
+
+app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar ordenes de inspeccion:
+{
+    var empleado = gestor.BuscarEmpleadoRI();
+    if (empleado == null)
+    {
+        return Results.NotFound("Empleado no encontrado.");
+    }
+    var ordenes = gestor.BuscarOrdenInspeccion(empleado);
+    if (ordenes == null || ordenes.Count == 0)
+    {
+        return Results.NotFound("No se encontraron órdenes de inspección.");
+    }
+    var ordenesOrdenadas = gestor.OrdenarOrdenInspeccion(ordenes);
+    if (ordenesOrdenadas == null || ordenesOrdenadas.Count == 0)
+    {
+        return Results.NotFound("No se encontraron órdenes de inspección.");
+    }
+    return Results.Ok(ordenesOrdenadas);
+});
 
 // Endpoint que carga todos los datos y devuelve todos los objetos generados
 app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
@@ -99,31 +125,9 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
 
 
 
-app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar ordenes de inspeccion:
-{
-    var empleado = gestor.BuscarEmpleadoRI();
-    if (empleado == null)
-    {
-        return Results.NotFound("Empleado no encontrado.");
-    }
-    var ordenes = gestor.BuscarOrdenInspeccion(empleado);
-    if (ordenes == null || ordenes.Count == 0)
-    {
-        return Results.NotFound("No se encontraron órdenes de inspección.");
-    }
-    var ordenesOrdenadas = gestor.OrdenarOrdenInspeccion(ordenes);
-    if (ordenesOrdenadas == null || ordenesOrdenadas.Count == 0)
-    {
-        return Results.NotFound("No se encontraron órdenes de inspección.");
-    }
-    return Results.Ok(ordenesOrdenadas);
-});
 
-app.MapGet("/motivos", (GestorCerrarOrdenDeInspeccion gestor) => // Endpoint para mostrar Motivos:
-{
-    var motivos = gestor.BuscarMotivoFueraDeServicio();
-    return Results.Ok(motivos);
-});
+
+
 
 app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO dto, DataLoaderService dataLoader) =>
 {

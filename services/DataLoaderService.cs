@@ -79,7 +79,7 @@ namespace PPAI_backend.services
         /// </summary>
         public List<OrdenDeInspeccion> GetOrdenesPorEmpleado(Empleado empleado)
         {
-            return OrdenesDeInspeccion.Where(o => o.esDelEmpleado(empleado)).ToList();
+            return OrdenesDeInspeccion.Where(o => o.EsDelEmpleado(empleado)).ToList();
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace PPAI_backend.services
         /// </summary>
         public List<OrdenDeInspeccion> GetOrdenesFinalizadasSinCerrar()
         {
-            return OrdenesDeInspeccion.Where(o => o.estaRealizada() && o.getFechaHoraCierre() == DateTime.MinValue).ToList();
+            return OrdenesDeInspeccion.Where(o => o.EstaRealizada() && o.getFechaHoraCierre() == DateTime.MinValue).ToList();
         }
 
         /// <summary>

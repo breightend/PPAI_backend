@@ -8,13 +8,27 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        builder => builder
+            .WithOrigins("http://localhost:5173") // Asegúrate que coincida con tu puerto frontend
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
+});
 // Registrar nuestros servicios
 builder.Services.AddSingleton<JsonMappingService>();
 builder.Services.AddSingleton<DataLoaderService>();
 builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 
 var app = builder.Build();
+app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
+app.UseAuthorization();
+//app.MapControllers();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 // Cargar todos los datos al inicio de la aplicación
 try
@@ -47,7 +61,17 @@ app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
     try
     {
         var empleado = gestor.BuscarEmpleadoRI();
-        return Results.Ok(empleado);
+        return Results.Ok(new
+        {
+            success = true,
+        data= new
+        {
+            nombre = empleado.Nombre,
+            apellido = empleado.Apellido,
+            mail = empleado.Mail,
+            telefono = empleado.Telefono,
+            rol = empleado.Rol.Descripcion
+        } });
     }
     catch (Exception ex)
     {

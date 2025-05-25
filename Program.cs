@@ -4,31 +4,41 @@ using PPAI_backend.services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 💡 Establecer puerto explícitamente
+builder.WebHost.UseUrls("http://localhost:5199");
+
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// 💡 Agregar servicio de autorización ANTES del Build
+builder.Services.AddAuthorization();
+
+// 💡 Configurar CORS para frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         builder => builder
-            .WithOrigins("http://localhost:5173") // Asegúrate que coincida con tu puerto frontend
+            .WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
 });
-// Registrar nuestros servicios
+
+// 💡 Registrar servicios propios
 builder.Services.AddSingleton<JsonMappingService>();
 builder.Services.AddSingleton<DataLoaderService>();
 builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 
+// 🔧 Build después de registrar servicios
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 var app = builder.Build();
+
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
-//app.MapControllers();
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+
 
 // Cargar todos los datos al inicio de la aplicación
 try
@@ -43,10 +53,10 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"❌ Error al cargar datos iniciales: {ex.Message}");
-    throw; // Stop application if data loading fails
+    throw;
 }
 
-// Configure the HTTP request pipeline.
+// Swagger en desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -54,7 +64,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 
 app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
 {
@@ -145,10 +154,6 @@ app.MapGet("/todos-los-datos", async (DataLoaderService dataLoader) =>
         return Results.BadRequest($"Error al cargar y mapear los datos: {ex.Message}");
     }
 });
-
-
-
-
 
 
 
@@ -260,8 +265,6 @@ app.MapGet("/datos-json", async (DataLoaderService dataLoader) =>
 });
 
 
-app.Run();
-
 async Task CargarDatosIniciales(IServiceProvider services)
 {
     using var scope = services.CreateScope();
@@ -287,3 +290,6 @@ async Task CargarDatosIniciales(IServiceProvider services)
         throw; // This will stop the application if data loading fails
     }
 }
+
+
+app.Run();

@@ -44,7 +44,7 @@ namespace PPAI_backend.models.entities
             return EstacionSismologica.getNombreEIdentificador();
         }
 
-        public void cerrar(Estado estadoCerrada,  List<Motivo> motivosSeleccionados)
+        public void cerrar(Estado estadoCerrada, List<Motivo> motivosSeleccionados)
         {
             var estadoActual = CambioEstado.FirstOrDefault(ce => ce.esEstadoActual());
 

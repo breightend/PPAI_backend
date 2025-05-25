@@ -15,6 +15,12 @@ namespace PPAI_backend.models.entities
         {
             return Nombre == "Finalizada";
         }
-    
+
+        public bool esAmbitoSismografo()
+        {
+            return Ambito.ToLower() == "sismógrafo"; // O como esté escrito exactamente en tus datos
+        }
+
+
     }
 }

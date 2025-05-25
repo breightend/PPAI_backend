@@ -27,14 +27,14 @@ namespace PPAI_backend.models.entities
         }
 
 
-  
+
         public Sesion? ObtenerSesionActiva()
         {
             // Implementa la lógica para obtener la sesión activa
             return _dataLoader.Sesiones.FirstOrDefault(s => s.FechaHoraFin == default);
         }
 
-        
+
         public Empleado BuscarEmpleadoRI()
         {
             var sesionActiva = ObtenerSesionActiva();
@@ -170,6 +170,25 @@ namespace PPAI_backend.models.entities
 
             return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
         }        // Método para obtener el empleado desde los datos cargados
+
+        public void ejecutarPaso12() // NO SE QUE METODO DEL D DE CLASES IRIA ACA
+        {
+            if (ordenSeleccionada == null)
+                throw new Exception("No hay orden seleccionada.");
+
+            Estado estadoFueraServicio = _dataLoader.Estados
+                .FirstOrDefault(e => e.Nombre.ToLower() == "fuera de servicio");
+
+            if (estadoFueraServicio == null)
+                throw new Exception("No se encontró el estado 'Fuera de servicio'.");
+
+            var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
+
+            sismografo.crearCambioEstadoSismografo(estadoFueraServicio, motivosSeleccionados);
+        }
+
+
+
 
     }
 }

@@ -42,7 +42,7 @@ namespace PPAI_backend.services
             MapRoles();
 
             var empleados = new List<Empleado>();
-            
+
             foreach (var empleadoDto in _datosDto.Empleados)
             {
                 var rol = _rolesMap.GetValueOrDefault(empleadoDto.RolId);
@@ -72,7 +72,7 @@ namespace PPAI_backend.services
             if (_empleadosMap.Count == 0) GetEmpleados();
 
             var usuarios = new List<Usuario>();
-            
+
             foreach (var usuarioDto in _datosDto.Usuarios)
             {
                 var empleado = _empleadosMap.GetValueOrDefault(usuarioDto.EmpleadoId);
@@ -97,7 +97,7 @@ namespace PPAI_backend.services
             if (_datosDto == null) throw new InvalidOperationException("Datos no cargados");
 
             var estados = new List<Estado>();
-            
+
             foreach (var estadoDto in _datosDto.Estados)
             {
                 var estado = new Estado
@@ -119,7 +119,7 @@ namespace PPAI_backend.services
             if (_datosDto == null) throw new InvalidOperationException("Datos no cargados");
 
             var motivos = new List<Motivo>();
-            
+
             foreach (var motivoDto in _datosDto.Motivos)
             {
                 var motivo = new Motivo
@@ -145,7 +145,7 @@ namespace PPAI_backend.services
             if (_motivosMap.Count == 0) GetMotivos();
 
             var sismografos = new List<Sismografo>();
-            
+
             foreach (var sismografoDto in _datosDto.Sismografos)
             {
                 var cambiosEstado = MapCambiosEstado(sismografoDto.CambioEstado);
@@ -175,7 +175,7 @@ namespace PPAI_backend.services
             if (_estadosMap.Count == 0) GetEstados();
 
             var estaciones = new List<EstacionSismologica>();
-            
+
             foreach (var estacionDto in _datosDto.EstacionesSismologicas)
             {
                 var sismografo = _sismografosMap.GetValueOrDefault(estacionDto.SismografoId);
@@ -214,7 +214,7 @@ namespace PPAI_backend.services
             if (_estadosMap.Count == 0) GetEstados();
 
             var ordenes = new List<OrdenDeInspeccion>();
-            
+
             foreach (var ordenDto in _datosDto.OrdenesDeInspeccion)
             {
                 var empleado = _empleadosMap.GetValueOrDefault(ordenDto.EmpleadoId);
@@ -252,7 +252,7 @@ namespace PPAI_backend.services
             if (_usuariosMap.Count == 0) GetUsuarios();
 
             var sesiones = new List<Sesion>();
-            
+
             foreach (var sesionDto in _datosDto.Sesiones)
             {
                 var usuario = _usuariosMap.GetValueOrDefault(sesionDto.UsuarioId);
@@ -290,7 +290,7 @@ namespace PPAI_backend.services
         private List<CambioEstado> MapCambiosEstado(List<CambioEstadoDto> cambiosDto)
         {
             var cambios = new List<CambioEstado>();
-            
+
             foreach (var cambioDto in cambiosDto)
             {
                 var estado = _estadosMap.GetValueOrDefault(cambioDto.EstadoId);
@@ -326,4 +326,4 @@ namespace PPAI_backend.services
             _estacionesMap.Clear();
         }
     }
-} 
+}

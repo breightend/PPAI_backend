@@ -8,13 +8,14 @@ namespace PPAI_backend.models.entities
 {
     public class Motivo
     {
-        public int Id { get; set; }
-        public required string Descripcion { get; set; }
+        public required int Id { get; set; }
+        public required TipoMotivo TipoMotivo { get; set; }
         public string? Comentario { get; set; }
-        
-        public static List<Motivo> ObtenerMotivoFueraServicio(DataLoaderService dataLoader)
+
+//Controlar
+        public string ObtenerMotivoFueraServicio()
         {
-           return dataLoader.Motivos;
+            return TipoMotivo.Descripcion;
         }
 
 

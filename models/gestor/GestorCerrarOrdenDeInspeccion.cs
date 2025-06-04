@@ -149,10 +149,10 @@ namespace PPAI_backend.models.entities
         }
         public void BuscarEstadoCerrada()
         {
-            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenInspeccion");
+            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenDeInspeccion");
 
             if (estadoCerrada == null)
-                throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenInspeccion'.");
+                throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenDeInspeccion'.");
         }
 
         // Método para cerrar la orden de inspección
@@ -161,7 +161,7 @@ namespace PPAI_backend.models.entities
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para cerrar.");
 
-            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenInspeccion");
+            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenDeInspeccion");
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada'.");
 
@@ -171,12 +171,12 @@ namespace PPAI_backend.models.entities
             return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
         }        // Método para obtener el empleado desde los datos cargados
 
-        public void ejecutarPaso12() // NO SE QUE METODO DEL D DE CLASES IRIA ACA
+        public void buscarEstadoFueraServicio()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay orden seleccionada.");
 
-            Estado estadoFueraServicio = _dataLoader.Estados
+            Estado? estadoFueraServicio = _dataLoader.Estados
                 .FirstOrDefault(e => e.Nombre.ToLower() == "fuera de servicio");
 
             if (estadoFueraServicio == null)
@@ -187,7 +187,30 @@ namespace PPAI_backend.models.entities
             sismografo.crearCambioEstadoSismografo(estadoFueraServicio, motivosSeleccionados);
         }
 
+        public void TomarMotivosSeleccionados(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
+        {
+            motivosSeleccionados.Clear();
+            var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
 
+            foreach (var dto in motivosDto)
+            {
+                var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.IdMotivo);
+                if (baseMotivo == null)
+                    throw new Exception($"Motivo con ID {dto.IdMotivo} no encontrado.");
+
+                // Crear un nuevo objeto motivo (el seleccionado) con el comentario agregado por el usuario.
+                var motivo = new Motivo
+                {
+                    Id = baseMotivo.Id,
+                    Descripcion = baseMotivo.Descripcion,
+                    Comentario = dto.Comentario ?? ""
+                };
+
+                motivosSeleccionados.Add(motivo);
+            }
+
+            Console.WriteLine($"Se registraron {motivosSeleccionados.Count} motivos seleccionados.");
+        }
 
 
     }

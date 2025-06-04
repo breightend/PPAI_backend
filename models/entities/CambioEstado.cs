@@ -32,8 +32,8 @@ namespace PPAI_backend.models.entities
         {
             return FechaHoraFin == null;
         }
-        
-        
-        
+
+
+
     }
 }

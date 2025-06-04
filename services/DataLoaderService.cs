@@ -9,16 +9,16 @@ namespace PPAI_backend.services
     public class DataLoaderService
     {
         private readonly JsonMappingService _mappingService;
-        
+
         // Almacenamos las entidades cargadas
-        public List<Empleado> Empleados { get; private set; } = new();
-        public List<Usuario> Usuarios { get; private set; } = new();
-        public List<Estado> Estados { get; private set; } = new();
-        public List<Motivo> Motivos { get; private set; } = new();
-        public List<Sismografo> Sismografos { get; private set; } = new();
-        public List<EstacionSismologica> EstacionesSismologicas { get; private set; } = new();
-        public List<OrdenDeInspeccion> OrdenesDeInspeccion { get; private set; } = new();
-        public List<Sesion> Sesiones { get; private set; } = new();
+        public List<Empleado> Empleados { get; set; } = new();
+        public List<Usuario> Usuarios { get; set; } = new();
+        public List<Estado> Estados { get; set; } = new();
+        public List<Motivo> Motivos { get; set; } = new();
+        public List<Sismografo> Sismografos { get; set; } = new();
+        public List<EstacionSismologica> EstacionesSismologicas { get; set; } = new();
+        public List<OrdenDeInspeccion> OrdenesDeInspeccion { get; set; } = new();
+        public List<Sesion> Sesiones { get; set; } = new();
 
         // Lista para almacenar motivos seleccionados temporalmente
         public List<Motivo> MotivosSeleccionados { get; private set; } = new();
@@ -95,7 +95,7 @@ namespace PPAI_backend.services
         /// </summary>
         public List<Sismografo> GetSismografosPorEstado(string nombreEstado)
         {
-            return Sismografos.Where(s => 
+            return Sismografos.Where(s =>
                 s.CambioEstado.Any(ce => ce.esEstadoActual() && ce.getEstado().Nombre == nombreEstado)
             ).ToList();
         }

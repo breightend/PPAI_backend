@@ -6,15 +6,12 @@ using Newtonsoft.Json;
 
 namespace PPAI_backend.datos.dtos
 {
-    public class MotivoDTO
+    public class TipoMotivoDTO
     {
         [JsonProperty("Id")]
         public int Id { get; set; }
         
-
-        
-        [JsonProperty("Comentario")]
-        public string? Comentario { get; set; }
+        [JsonProperty("Descripcion")]
+        public string Descripcion { get; set; } = string.Empty;
     }
-
 }

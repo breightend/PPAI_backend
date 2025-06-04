@@ -93,11 +93,25 @@ app.MapGet("/motivos", (GestorCerrarOrdenDeInspeccion gestor) =>
     {
         // El gestor se encarga de buscar los motivos desde los datos cargados
         var motivos = gestor.BuscarMotivoFueraDeServicio();
+
+        // Mapear a una estructura más clara para el frontend
+        var motivosResponse = motivos.Select(m => new
+        {
+            id = m.Id,
+            descripcion = m.Descripcion, // Ahora viene de TipoMotivo.Descripcion
+            tipoMotivo = new
+            {
+                id = m.TipoMotivo.Id,
+                descripcion = m.TipoMotivo.Descripcion
+            },
+            comentario = m.Comentario
+        }).ToList();
+
         return Results.Ok(new
         {
             success = true,
-            message = "Motivos obtenidos desde el gestor",
-            data = motivos
+            message = "Motivos obtenidos desde el gestor con estructura TipoMotivo",
+            data = motivosResponse
         });
     }
     catch (Exception ex)
@@ -198,18 +212,18 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
         // Configurar relaciones Usuario -> Empleado
         foreach (var usuario in dataLoader.Usuarios)
         {
-            var empleado = dataLoader.Empleados.FirstOrDefault(e => e.Mail == usuario.NombreUsuario + "@empresa.com" ||
-                e.Nombre.ToLower() + "." + e.Apellido.ToLower() == usuario.NombreUsuario.ToLower());
-            if (empleado != null)
+            // El usuario ya tiene la relación con empleado establecida por JsonMappingService
+            // Solo verificamos que la relación exista
+            if (usuario.Empleado == null)
             {
-                usuario.Empleado = empleado;
+                Console.WriteLine($"⚠️ Usuario {usuario.NombreUsuario} no tiene empleado asignado");
             }
         }
 
         // Crear sesión activa simulada para pruebas
-        // Buscar un usuario responsable de reparación
+        // Buscar un usuario con rol "Responsable de Inspección" 
         var usuarioRI = dataLoader.Usuarios.FirstOrDefault(u =>
-            u.Empleado?.EsResponsableDeReparacion() == true);
+            u.Empleado?.Rol?.Descripcion == "Responsable de Inspección");
 
         if (usuarioRI != null)
         {

@@ -122,10 +122,16 @@ namespace PPAI_backend.services
 
             foreach (var motivoDto in _datosDto.Motivos)
             {
+                var tipoMotivo = new TipoMotivo
+                {
+                    Id = motivoDto.TipoMotivo.Id,
+                    Descripcion = motivoDto.TipoMotivo.Descripcion
+                };
+
                 var motivo = new Motivo
                 {
                     Id = motivoDto.Id,
-                    Descripcion = motivoDto.Descripcion,
+                    TipoMotivo = tipoMotivo,
                     Comentario = motivoDto.Comentario
                 };
 
@@ -299,7 +305,8 @@ namespace PPAI_backend.services
                 var motivos = cambioDto.Motivos
                     .Select(motivoId => _motivosMap.GetValueOrDefault(motivoId))
                     .Where(motivo => motivo != null)
-                    .ToList()!;
+                    .Cast<Motivo>()  // Explicitly cast to non-nullable
+                    .ToList();
 
                 var cambio = new CambioEstado
                 {

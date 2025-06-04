@@ -12,13 +12,21 @@ namespace PPAI_backend.models.entities
         public required TipoMotivo TipoMotivo { get; set; }
         public string? Comentario { get; set; }
 
-//Controlar
+        //Controlar
         public string ObtenerMotivoFueraServicio()
         {
             return TipoMotivo.Descripcion;
         }
 
+        // Método estático para obtener motivos de fuera de servicio
+        public static List<Motivo> ObtenerMotivoFueraServicio(DataLoaderService dataLoader)
+        {
+            // Retornar todos los motivos disponibles desde el DataLoader
+            return dataLoader.Motivos;
+        }
 
+        // Propiedad para obtener la descripción del motivo
+        public string Descripcion => TipoMotivo.Descripcion;
 
     }
 }

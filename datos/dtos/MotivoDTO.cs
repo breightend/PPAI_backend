@@ -10,9 +10,10 @@ namespace PPAI_backend.datos.dtos
     {
         [JsonProperty("Id")]
         public int Id { get; set; }
-        
 
-        
+        [JsonProperty("tipoMotivo")]
+        public TipoMotivoDTO TipoMotivo { get; set; } = new();
+
         [JsonProperty("Comentario")]
         public string? Comentario { get; set; }
     }

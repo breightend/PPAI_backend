@@ -202,7 +202,7 @@ namespace PPAI_backend.models.entities
                 var motivo = new Motivo
                 {
                     Id = baseMotivo.Id,
-                    Descripcion = baseMotivo.Descripcion,
+                    TipoMotivo = baseMotivo.TipoMotivo,
                     Comentario = dto.Comentario ?? ""
                 };
 

@@ -199,7 +199,7 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
         foreach (var usuario in dataLoader.Usuarios)
         {
             var empleado = dataLoader.Empleados.FirstOrDefault(e => e.Mail == usuario.NombreUsuario + "@empresa.com" ||
-                                                                      e.Nombre.ToLower() + "." + e.Apellido.ToLower() == usuario.NombreUsuario.ToLower());
+                e.Nombre.ToLower() + "." + e.Apellido.ToLower() == usuario.NombreUsuario.ToLower());
             if (empleado != null)
             {
                 usuario.Empleado = empleado;

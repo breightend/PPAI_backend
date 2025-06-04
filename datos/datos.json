@@ -61,14 +61,16 @@
     { "id": "estado_es_2", "Nombre": "EnMantenimiento", "Descripcion": "Estación sismológica en mantenimiento.", "Ambito": "EstacionSismologica" },
     { "id": "estado_es_3", "Nombre": "NoOperativa", "Descripcion": "Estación sismológica no operativa.", "Ambito": "EstacionSismologica" }
   ],
+  
   "motivos": [
-    { "Id": 101, "Descripcion": "Avería por vibración", "Comentario": null },
-    { "Id": 102, "Descripcion": "Desgaste de componente", "Comentario": null },
-    { "Id": 103, "Descripcion": "Fallo en el sistema de registro", "Comentario": null },
-    { "Id": 104, "Descripcion": "Vandalismo", "Comentario": null },
-    { "Id": 105, "Descripcion": "Fallo en fuente de alimentación", "Comentario": null },
-    { "Id": 106, "Descripcion": "Obsolescencia", "Comentario": null }
+    { "Id": 101, "Comentario": null, "tipoMotivo" : { "Id": 1,"Descripcion" : "Avería por vibración"} },
+    { "Id": 102, "Comentario": null, "tipoMotivo" : {"Id": 2,"Descripcion" : "Desgaste de componente"} },
+    { "Id": 103, "Comentario": null, "tipoMotivo" : {"Id": 3,"Descripcion" : "Fallo en el sistema de registro"} },
+    { "Id": 104, "Comentario": null, "tipoMotivo" : {"Id": 4,"Descripcion" : "Vandalismo"} },
+    { "Id": 105, "Comentario": null, "tipoMotivo" : {"Id": 5,"Descripcion" : "Fallo en fuente de alimentación"} },
+    { "Id": 106, "Comentario": null, "tipoMotivo" : {"Id": 6,"Descripcion" : "Obsolescencia"} }
   ],
+
   "sismografos": [
     {
       "id": "sismo001",

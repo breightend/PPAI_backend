@@ -212,6 +212,11 @@ namespace PPAI_backend.models.entities
             Console.WriteLine($"Se registraron {motivosSeleccionados.Count} motivos seleccionados.");
         }
 
+        public OrdenDeInspeccion? GetOrdenSeleccionada()
+        {
+            return ordenSeleccionada;
+        }
+
 
     }
 }

@@ -186,10 +186,38 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
         gestor.ValidarObsYComentario();
 
         var resultado = gestor.CerrarOrdenSeleccionada();
+        // Obtener la orden cerrada y sus datos relevantes
+        var orden = gestor.GetOrdenSeleccionada();
+        if (orden == null)
+            return Results.BadRequest("No se encontró la orden seleccionada.");
+        var sismografo = orden.EstacionSismologica?.Sismografo;
+        if (sismografo == null)
+            return Results.BadRequest("No se encontró el sismógrafo asociado a la orden.");
+        var cambioEstadoFS = sismografo.CambioEstado
+            .Where(ce => ce.Estado.Nombre.ToLower() == "fuera de servicio")
+            .OrderByDescending(ce => ce.FechaHoraInicio)
+            .FirstOrDefault();
+
+        var motivos = cambioEstadoFS?.Motivos.Select(m => new {
+            id = m.Id,
+            tipoMotivo = new {
+                id = m.TipoMotivo.Id,
+                descripcion = m.TipoMotivo.Descripcion
+            },
+            comentario = m.Comentario
+        }).ToList();
+
         return Results.Ok(new
         {
             success = true,
-            message = resultado
+            message = resultado,
+            cierre = new
+            {
+                identificadorSismografo = sismografo.IdentificadorSismografo,
+                estado = cambioEstadoFS?.Estado.Nombre,
+                fechaHoraRegistro = cambioEstadoFS?.FechaHoraInicio,
+                motivos = motivos
+            }
         });
     }
     catch (Exception ex)

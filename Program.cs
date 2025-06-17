@@ -66,7 +66,7 @@ app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
         // 2. De la sesión obtiene el usuario
         // 3. Del usuario obtiene el empleado
         var empleado = gestor.BuscarEmpleadoRI();
-
+        //TODO: mandar mail para saber que es lo que quieren de mi :(
         return Results.Ok(new
         {
             success = true,
@@ -91,14 +91,12 @@ app.MapGet("/motivos", (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        // El gestor se encarga de buscar los motivos desde los datos cargados
         var motivos = gestor.BuscarMotivoFueraDeServicio();
 
-        // Mapear a una estructura más clara para el frontend
         var motivosResponse = motivos.Select(m => new
         {
             id = m.Id,
-            descripcion = m.Descripcion, // Ahora viene de TipoMotivo.Descripcion
+            descripcion = m.Descripcion,
             tipoMotivo = new
             {
                 id = m.TipoMotivo.Id,
@@ -165,8 +163,8 @@ app.MapPost("/agregar-observacion", (ObservationRequest request, GestorCerrarOrd
     try
     {
         // El gestor maneja toda la lógica interna
-        gestor.tomarOrdenSeleccionada(request.OrderId);
-        gestor.tomarObservacion(request.Observation);
+        gestor.TomarOrdenSeleccionada(request.OrderId);
+        gestor.TomarObservacion(request.Observation);
         return Results.Ok("Observación agregada correctamente.");
     }
     catch (Exception ex)
@@ -180,12 +178,12 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
     try
     {
         // El gestor maneja toda la lógica de cierre de orden
-        gestor.tomarOrdenSeleccionada(request.OrdenId);
-        gestor.tomarObservacion(request.Observation);
+        gestor.TomarOrdenSeleccionada(request.OrdenId);
+        gestor.TomarObservacion(request.Observation);
         gestor.TomarMotivosSeleccionados(request.Motivos);
         gestor.ValidarObsYComentario();
 
-        var resultado = gestor.CerrarOrdenSeleccionada();
+        var resultado = gestor.CerrarOrdenDeInspeccion();
         // Obtener la orden cerrada y sus datos relevantes
         var orden = gestor.GetOrdenSeleccionada();
         if (orden == null)
@@ -198,9 +196,11 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
             .OrderByDescending(ce => ce.FechaHoraInicio)
             .FirstOrDefault();
 
-        var motivos = cambioEstadoFS?.Motivos.Select(m => new {
+        var motivos = cambioEstadoFS?.Motivos.Select(m => new
+        {
             id = m.Id,
-            tipoMotivo = new {
+            tipoMotivo = new
+            {
                 id = m.TipoMotivo.Id,
                 descripcion = m.TipoMotivo.Descripcion
             },

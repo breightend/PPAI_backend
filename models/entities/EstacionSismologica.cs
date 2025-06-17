@@ -14,7 +14,7 @@ namespace PPAI_backend.models.entities
         public required string Nombre { get; set; }
         public int NroCertificacionAdquirida { get; set; }
         public required Sismografo Sismografo { get; set; }
-        
+
 
         public required Empleado Empleado { get; set; }
         public required Estado Estado { get; set; }
@@ -22,6 +22,13 @@ namespace PPAI_backend.models.entities
         public (string Nombre, int IdentificadorSismografo) getNombreEIdentificador()
         {
             return (Nombre, Sismografo.IdentificadorSismografo);
+        }
+        
+        public void ActualizarSismografo(Sismografo sismografo, DateTime horaActual)
+        {
+            if (sismografo == null)
+                throw new ArgumentNullException(nameof(sismografo), "El sismógrafo no puede ser nulo.");
+            Sismografo.ActualizarSismografo(sismografo, horaActual);
         }
     }
 }

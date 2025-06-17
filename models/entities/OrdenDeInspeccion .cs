@@ -31,7 +31,7 @@ namespace PPAI_backend.models.entities
 
         public Boolean EsDelEmpleado(Empleado empleadoLogueado)
         {
-            return Empleado.Nombre == empleadoLogueado.Nombre && Empleado.Apellido == empleadoLogueado.Apellido;
+            return ReferenceEquals(Empleado, empleadoLogueado);
         }
         public DateTime getFechaHoraCierre() { return FechaHoraCierre; }
         public bool EstaRealizada()
@@ -44,25 +44,28 @@ namespace PPAI_backend.models.entities
             return EstacionSismologica.getNombreEIdentificador();
         }
 
-        public void cerrar(Estado estadoCerrada, List<Motivo> motivosSeleccionados)
+        public void cerrar(Estado estadoCerrada, List<Motivo> motivosSeleccionados, DateTime horaActual)
         {
             var estadoActual = CambioEstado.FirstOrDefault(ce => ce.esEstadoActual());
 
             if (estadoActual != null)
             {
-                estadoActual.setFechaHoraFin(DateTime.Now);
+                estadoActual.setFechaHoraFin(horaActual);
             }
-            var nuevoCambio = new CambioEstado // Inicializa un nuevo objeto cambio de estado
+            CrearCambioEnLaOrdenDeInspeccion(estadoCerrada, horaActual, motivosSeleccionados);
+        }
+
+        public void CrearCambioEnLaOrdenDeInspeccion(Estado estado, DateTime horaActual, List<Motivo> motivosSeleccionados)
+        {
+            var nuevoCambio = new CambioEstado
             {
-                FechaHoraInicio = DateTime.Now,
+                FechaHoraInicio = horaActual,
                 FechaHoraFin = null,
-                Estado = estadoCerrada,
+                Estado = estado,
                 Motivos = motivosSeleccionados
             };
             CambioEstado.Add(nuevoCambio);
-            FechaHoraCierre = DateTime.Now;
+            FechaHoraFinalizacion = horaActual;
         }
-
-
     }
 }

@@ -17,6 +17,7 @@ namespace PPAI_backend.models.entities
         {
             Usuario = new Usuario()
         };
+        private List<Motivo> motivosSeleccionados = new();
 
         private Empleado? empleado;
 
@@ -27,26 +28,15 @@ namespace PPAI_backend.models.entities
         }
 
 
-
-        public Sesion? ObtenerSesionActiva()
-        {
-            // Implementa la lógica para obtener la sesión activa
-            return _dataLoader.Sesiones.FirstOrDefault(s => s.FechaHoraFin == default);
-        }
-
-
         public Empleado BuscarEmpleadoRI()
         {
-            var sesionActiva = ObtenerSesionActiva();
+            Sesion? sesionActiva = _dataLoader.Sesiones.FirstOrDefault(s => s.FechaHoraFin == default);
 
             if (sesionActiva == null)
                 throw new Exception("No hay sesión activa");
 
             return sesionActiva.BuscarEmpleadoRI();
         }
-
-
-        private List<Motivo> motivosSeleccionados = new();
 
 
         public List<DatosOI> BuscarOrdenInspeccion(Empleado empleado)
@@ -80,7 +70,7 @@ namespace PPAI_backend.models.entities
 
 
         private OrdenDeInspeccion? ordenSeleccionada;
-        public void tomarOrdenSeleccionada(int numeroOrden)
+        public void TomarOrdenSeleccionada(int numeroOrden)
         {
             ordenSeleccionada = _dataLoader.OrdenesDeInspeccion.FirstOrDefault(oi => oi.getNumeroOrden() == numeroOrden);
 
@@ -88,44 +78,50 @@ namespace PPAI_backend.models.entities
                 throw new Exception($"No se encontró la orden número: {numeroOrden} en la lista mostrada anteriormente.");
         }
 
-        public void tomarObservacion(string observacion)
+        public void TomarObservacion(string observacion)
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para tomar la observación.");
             ordenSeleccionada.ObservacionCierre = observacion;
 
         }
-
+        //TODO: ver el tema de motivos como se los puede llamar
         public List<Motivo> BuscarMotivoFueraDeServicio()
         {
             return Motivo.ObtenerMotivoFueraServicio(_dataLoader);
         }
+        public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
+        {
+            if (ordenSeleccionada == null)
+                throw new Exception("No hay una orden seleccionada para tomar los motivos.");
 
+            if (seleccionados == null || !seleccionados.Any())
+                throw new Exception("Debe seleccionar al menos un motivo.");
 
-        /*         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
+            motivosSeleccionados.Clear();
+
+            var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
+
+            foreach (var dto in seleccionados)
+            {
+                var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
+                if (baseMotivo == null)
+                    throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
+
+                var motivo = new Motivo
                 {
-                    var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
+                    Id = baseMotivo.Id,
+                    TipoMotivo = baseMotivo.TipoMotivo,
+                    Comentario = dto.Comentario ?? ""
+                };
 
-                    foreach (var dto in seleccionados)
-                    {
-                        var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
-                        if (baseMotivo == null)
-                            throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
+                motivosSeleccionados.Add(motivo);
+            }
 
-                        // Crear un nuevo objeto motivo (el seleccionado) con el comentario agregado por el usuario.
-                        var motivo = new Motivo
-                        {
-                            Id = baseMotivo.Id,
-                            Descripcion = baseMotivo.Descripcion,
-                            Comentario = dto.Comentario ?? ""
-                        };
+            Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
+        }
 
-                        motivosSeleccionados.Add(motivo);
-                    }
 
-                    Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
-                }
-         */
         public string Confirmar()
         {
             if (ordenSeleccionada == null)
@@ -155,8 +151,7 @@ namespace PPAI_backend.models.entities
                 throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenDeInspeccion'.");
         }
 
-        // Método para cerrar la orden de inspección
-        public string CerrarOrdenSeleccionada()
+        public string CerrarOrdenDeInspeccion()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para cerrar.");
@@ -165,26 +160,31 @@ namespace PPAI_backend.models.entities
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada'.");
 
-            // Llamar al método cerrar de la orden con el estado y motivos
-            ordenSeleccionada.cerrar(estadoCerrada, motivosSeleccionados);
+            ordenSeleccionada.cerrar(estadoCerrada, motivosSeleccionados, DateTime.Now);
 
             return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
-        }        // Método para obtener el empleado desde los datos cargados
-
-        public void buscarEstadoFueraServicio()
+        }
+        public void BuscarEstadoFueraServicio()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay orden seleccionada.");
 
-            Estado? estadoFueraServicio = _dataLoader.Estados
-                .FirstOrDefault(e => e.Nombre.ToLower() == "fuera de servicio");
+            Estado? estadoFueraServicio = null;
+
+            foreach (var estado in _dataLoader.Estados)
+            {
+                if (estado.esAmbitoSismografo() && estado.estadoFueraServicio())
+                {
+                    estadoFueraServicio = estado;
+                    break;
+                }
+            }
 
             if (estadoFueraServicio == null)
-                throw new Exception("No se encontró el estado 'Fuera de servicio'.");
+                throw new Exception("No se encontró el estado 'Fuera de servicio' con ámbito 'Sismógrafo'.");
 
             var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
-
-            sismografo.crearCambioEstadoSismografo(estadoFueraServicio, motivosSeleccionados);
+            sismografo.crearCambioEstadoSismografo(estadoFueraServicio, motivosSeleccionados, DateTime.Now);
         }
 
         public void TomarMotivosSeleccionados(List<MotivoSeleccionadoConComentarioDTO> motivosDto)

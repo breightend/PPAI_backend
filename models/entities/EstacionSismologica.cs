@@ -21,7 +21,7 @@ namespace PPAI_backend.models.entities
 
         public (string Nombre, int IdentificadorSismografo) getNombreEIdentificador()
         {
-            return (Nombre, Sismografo.IdentificadorSismografo);
+            return (Nombre, Sismografo.getIdentificadorSismografo());
         }
         
         public void ActualizarSismografo(Sismografo sismografo, DateTime horaActual)

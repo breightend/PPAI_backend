@@ -154,7 +154,6 @@ app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
-// ========== ENDPOINTS QUE SOLO USAN EL GESTOR ==========
 
 // ========== ENDPOINTS QUE SOLO USAN EL GESTOR ==========
 
@@ -177,7 +176,6 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
 {
     try
     {
-        // El gestor maneja toda la lógica de cierre de orden
         gestor.TomarOrdenSeleccionada(request.OrdenId);
         gestor.TomarObservacion(request.Observation);
         gestor.TomarMotivosSeleccionados(request.Motivos);
@@ -234,22 +232,16 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
 
     try
     {
-        // Cargar los datos primero
         await dataLoader.LoadAllDataAsync("datos/datos.json");
 
-        // Configurar relaciones Usuario -> Empleado
         foreach (var usuario in dataLoader.Usuarios)
         {
-            // El usuario ya tiene la relación con empleado establecida por JsonMappingService
-            // Solo verificamos que la relación exista
             if (usuario.Empleado == null)
             {
                 Console.WriteLine($"⚠️ Usuario {usuario.NombreUsuario} no tiene empleado asignado");
             }
         }
 
-        // Crear sesión activa simulada para pruebas
-        // Buscar un usuario con rol "Responsable de Inspección" 
         var usuarioRI = dataLoader.Usuarios.FirstOrDefault(u =>
             u.Empleado?.Rol?.Descripcion == "Responsable de Inspección");
 
@@ -262,7 +254,6 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
                 Usuario = usuarioRI
             };
 
-            // Agregar la sesión activa a la lista
             dataLoader.Sesiones.Add(sesionActiva);
         }
 

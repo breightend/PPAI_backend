@@ -84,11 +84,10 @@ namespace PPAI_backend.models.entities
                 throw new Exception("No hay una orden seleccionada para tomar la observación.");
             ordenSeleccionada.ObservacionCierre = observacion;
 
-        }
-        //TODO: ver el tema de motivos como se los puede llamar
-        public List<Motivo> BuscarMotivoFueraDeServicio()
+        }        public List<Motivo> BuscarMotivoFueraDeServicio()
         {
-            return Motivo.ObtenerMotivoFueraServicio(_dataLoader);
+            // Usar el _dataLoader para obtener los motivos, igual que BuscarEmpleadoRI()
+            return _dataLoader.Motivos.ToList();
         }
         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
         {
@@ -100,7 +99,8 @@ namespace PPAI_backend.models.entities
 
             motivosSeleccionados.Clear();
 
-            var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
+            // Usar el _dataLoader para obtener los motivos, igual que BuscarEmpleadoRI()
+            var todosLosMotivos = _dataLoader.Motivos.ToList();
 
             foreach (var dto in seleccionados)
             {
@@ -187,10 +187,12 @@ namespace PPAI_backend.models.entities
             sismografo.crearCambioEstadoSismografo(estadoFueraServicio, motivosSeleccionados, DateTime.Now);
         }
 
+
         public void TomarMotivosSeleccionados(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
         {
             motivosSeleccionados.Clear();
-            var todosLosMotivos = Motivo.ObtenerMotivoFueraServicio(_dataLoader);
+            // Usar el _dataLoader para obtener los motivos, igual que BuscarEmpleadoRI()
+            var todosLosMotivos = _dataLoader.Motivos.ToList();
 
             foreach (var dto in motivosDto)
             {

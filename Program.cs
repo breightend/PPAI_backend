@@ -155,7 +155,6 @@ app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) =>
 });
 
 
-// ========== ENDPOINTS QUE SOLO USAN EL GESTOR ==========
 
 app.MapPost("/agregar-observacion", (ObservationRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
@@ -224,7 +223,7 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
     }
 });
 
-// Función para inicializar relaciones entre entidades
+
 async Task ConfigurarRelacionesEntidades(IServiceProvider services)
 {
     using var scope = services.CreateScope();

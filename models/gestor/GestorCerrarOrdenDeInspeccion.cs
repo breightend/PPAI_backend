@@ -21,7 +21,6 @@ namespace PPAI_backend.models.entities
 
         private Empleado? empleado;
 
-        // Constructor que recibe el DataLoaderService
         public GestorCerrarOrdenDeInspeccion(DataLoaderService dataLoader)
         {
             _dataLoader = dataLoader;
@@ -62,6 +61,7 @@ namespace PPAI_backend.models.entities
 
             return resultado;
         }
+
         public List<DatosOI> OrdenarOrdenInspeccion(List<DatosOI> ordenes)
         {
             return ordenes.OrderBy(o => o.FechaFin).ToList();
@@ -84,9 +84,9 @@ namespace PPAI_backend.models.entities
                 throw new Exception("No hay una orden seleccionada para tomar la observación.");
             ordenSeleccionada.ObservacionCierre = observacion;
 
-        }        public List<Motivo> BuscarMotivoFueraDeServicio()
+        }
+        public List<Motivo> BuscarMotivoFueraDeServicio()
         {
-            // Usar el _dataLoader para obtener los motivos, igual que BuscarEmpleadoRI()
             return _dataLoader.Motivos.ToList();
         }
         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)

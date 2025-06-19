@@ -154,6 +154,20 @@ app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
+app.MapPost("/confirmar-cierre", (ConfirmarRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        // El gestor maneja toda la lógica interna
+        gestor.Confirmar();
+        return Results.Ok("Cierre confirmado correctamente.");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al confirmar cierre: {ex.Message}");
+    }
+});
+
 
 
 app.MapPost("/agregar-observacion", (ObservationRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
@@ -237,7 +251,7 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
         {
             if (usuario.Empleado == null)
             {
-                Console.WriteLine($"⚠️ Usuario {usuario.NombreUsuario} no tiene empleado asignado");
+                Console.WriteLine($" Usuario {usuario.NombreUsuario} no tiene empleado asignado");
             }
         }
 
@@ -256,12 +270,12 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
             dataLoader.Sesiones.Add(sesionActiva);
         }
 
-        Console.WriteLine("✅ Relaciones entre entidades configuradas correctamente");
-        Console.WriteLine($"📊 Sesión activa configurada para: {usuarioRI?.Empleado?.Nombre} {usuarioRI?.Empleado?.Apellido}");
+        Console.WriteLine(" Relaciones entre entidades configuradas correctamente");
+        Console.WriteLine($"Sesión activa configurada para: {usuarioRI?.Empleado?.Nombre} {usuarioRI?.Empleado?.Apellido}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Error al configurar relaciones: {ex.Message}");
+        Console.WriteLine($" Error al configurar relaciones: {ex.Message}");
         throw;
     }
 }

@@ -154,6 +154,24 @@ app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
+app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO request, GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        foreach (var motivo in request.Motivos)
+        {
+            Console.WriteLine($"ID: {motivo.IdMotivo}, Comentario: {motivo.Comentario}");
+        }
+        gestor.TomarMotivosSeleccionados(request.Motivos);
+
+        return Results.Ok("Motivos recibidos correctamente.");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al recibir los motivos: {ex.Message}");
+    }
+});
+
 app.MapPost("/confirmar-cierre", (ConfirmarRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
@@ -174,7 +192,6 @@ app.MapPost("/agregar-observacion", (ObservationRequest request, GestorCerrarOrd
 {
     try
     {
-        // El gestor maneja toda la lógica interna
         gestor.TomarOrdenSeleccionada(request.OrderId);
         gestor.TomarObservacion(request.Observation);
         return Results.Ok("Observación agregada correctamente.");
@@ -193,6 +210,7 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
         gestor.TomarObservacion(request.Observation);
         gestor.TomarMotivosSeleccionados(request.Motivos);
         gestor.ValidarObsYComentario();
+        gestor.BuscarEstadoCerrada();
 
         var resultado = gestor.CerrarOrdenDeInspeccion();
         // Obtener la orden cerrada y sus datos relevantes

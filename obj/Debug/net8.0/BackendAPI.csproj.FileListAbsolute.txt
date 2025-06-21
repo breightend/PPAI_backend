@@ -413,3 +413,4 @@ C:\Users\Brenda\Desktop\PPAI_Final\PPAI_backend\obj\Debug\net8.0\refint\BackendA
 C:\Users\Brenda\Desktop\PPAI_Final\PPAI_backend\obj\Debug\net8.0\BackendAPI.pdb
 C:\Users\Brenda\Desktop\PPAI_Final\PPAI_backend\obj\Debug\net8.0\BackendAPI.genruntimeconfig.cache
 C:\Users\Brenda\Desktop\PPAI_Final\PPAI_backend\obj\Debug\net8.0\ref\BackendAPI.dll
+C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\package-lock.json

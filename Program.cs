@@ -37,6 +37,7 @@ app.UseAuthorization();
 // Cargar todos los datos y configurar relaciones al inicio de la aplicación.
 //TODO: ver el tema motivo que no se carga bien
 //TODO: Agregar las referencias 
+//TODO: Agregar alternativas 
 
 try
 {

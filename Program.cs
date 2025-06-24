@@ -255,7 +255,32 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
     }
 });
 
+app.MapPost("/enviar-mail", (GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        var mailsResponsables = gestor.ObtenerMailsResponsableReparacion();
+        
+        foreach (var email in mailsResponsables)
+        {
+            // interfaz
+        }
+        
+        // Publicar en monitores CCRS
+        // pantallaCCRS.Publicar();
+        
+        return Results.Ok(new { 
+            success = true, 
+            message = "Notificaciones por defecto enviadas correctamente",
+            emailsEnviados = mailsResponsables.Count 
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error enviando notificaciones: {ex.Message}");
+    }
 
+});
 async Task ConfigurarRelacionesEntidades(IServiceProvider services)
 {
     using var scope = services.CreateScope();

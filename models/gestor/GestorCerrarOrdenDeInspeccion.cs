@@ -219,6 +219,50 @@ namespace PPAI_backend.models.entities
             return ordenSeleccionada;
         }
 
+        public List<string> ObtenerMailsResponsableReparacion()
+        {
+            List<string> mailsResponsableReparacion = new List<string>();
 
+            foreach (var emp in _dataLoader.Empleados)
+            {
+                if (emp.EsResponsableDeReparacion())
+                {
+                    mailsResponsableReparacion.Add(emp.GetMail());
+                }
+            }
+            return mailsResponsableReparacion;
+        }
+        public void EnviarNotificacionPorMail()
+        {
+            var mailsResponsables = ObtenerMailsResponsableReparacion();
+
+            if (ordenSeleccionada == null)
+                throw new Exception("No hay orden seleccionada para enviar notificación.");
+
+            var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
+
+            var cambioEstadoFS = sismografo.CambioEstado
+                .Where(ce => ce.Estado.estadoFueraServicio() && ce.Estado.esAmbitoSismografo())
+                .OrderByDescending(ce => ce.FechaHoraInicio)
+                .FirstOrDefault();
+
+            if (cambioEstadoFS == null)
+                throw new Exception("No se encontró el cambio de estado a 'Fuera de Servicio'.");
+
+            // Datos para la notificación
+            if (cambioEstadoFS.Motivos == null || !cambioEstadoFS.Motivos.Any())
+                throw new Exception("No hay motivos asociados al cambio de estado 'Fuera de Servicio'.");
+                
+            var datosNotificacion = new
+            {
+                IdentificadorSismografo = sismografo.IdentificadorSismografo,
+                NombreEstado = cambioEstadoFS.Estado.Nombre,
+                FechaHoraRegistro = cambioEstadoFS.FechaHoraInicio,
+                Motivos = cambioEstadoFS.Motivos.ToList()
+            };
+
+            // Llamar al método enviarMails() con los datos
+
+        }
     }
 }

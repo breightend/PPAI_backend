@@ -33,8 +33,13 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
+//TODO: Terminar de haccer diagrama de secuencia 
+// Cargar todos los datos y configurar relaciones al inicio de la aplicación.
+//TODO: ver el tema motivo que no se carga bien
+//TODO: Agregar las referencias 
+//TODO: Agregar alternativas 4 y 6.
+//TODO: Agregar la parte de monitores.
 
-// Cargar todos los datos y configurar relaciones al inicio de la aplicación
 try
 {
     await ConfigurarRelacionesEntidades(app.Services);
@@ -66,7 +71,6 @@ app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
         // 2. De la sesión obtiene el usuario
         // 3. Del usuario obtiene el empleado
         var empleado = gestor.BuscarEmpleadoRI();
-        //TODO: mandar mail para saber que es lo que quieren de mi :(
         return Results.Ok(new
         {
             success = true,

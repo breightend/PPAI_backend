@@ -12,7 +12,7 @@
       "id": "emp001",
       "Apellido": "González",
       "Nombre": "Carlos",
-      "Mail": "carlos.gonzalez@example.com",
+      "Mail": "carlos.gonzalez@mail.com",
       "Telefono": "351-1234567",
       "RolId": 1
     },
@@ -20,7 +20,7 @@
       "id": "emp002",
       "Apellido": "Martinez",
       "Nombre": "Laura",
-      "Mail": "laura.martinez@example.com",
+      "Mail": "laura.martinez@mail.com",
       "Telefono": "351-7654321",
       "RolId": 2
     }

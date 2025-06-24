@@ -89,6 +89,7 @@ namespace PPAI_backend.models.entities
         {
             return _dataLoader.Motivos.ToList();
         }
+        
         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
         {
             if (ordenSeleccionada == null)

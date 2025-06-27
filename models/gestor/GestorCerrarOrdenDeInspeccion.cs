@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using PPAI_backend.datos.dtos;
 using PPAI_backend.services;
+using PPAI_backend.models.gestor;
 
 
 namespace PPAI_backend.models.entities
@@ -89,7 +90,7 @@ namespace PPAI_backend.models.entities
         {
             return _dataLoader.Motivos.ToList();
         }
-        
+
         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
         {
             if (ordenSeleccionada == null)
@@ -240,29 +241,29 @@ namespace PPAI_backend.models.entities
             if (ordenSeleccionada == null)
                 throw new Exception("No hay orden seleccionada para enviar notificación.");
 
+            if (motivosSeleccionados == null || !motivosSeleccionados.Any())
+                throw new Exception("No hay motivos seleccionados para la notificación.");
+
             var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
 
-            var cambioEstadoFS = sismografo.CambioEstado
-                .Where(ce => ce.Estado.estadoFueraServicio() && ce.Estado.esAmbitoSismografo())
-                .OrderByDescending(ce => ce.FechaHoraInicio)
-                .FirstOrDefault();
-
-            if (cambioEstadoFS == null)
-                throw new Exception("No se encontró el cambio de estado a 'Fuera de Servicio'.");
-
-            // Datos para la notificación
-            if (cambioEstadoFS.Motivos == null || !cambioEstadoFS.Motivos.Any())
-                throw new Exception("No hay motivos asociados al cambio de estado 'Fuera de Servicio'.");
-                
             var datosNotificacion = new
             {
-                IdentificadorSismografo = sismografo.IdentificadorSismografo,
-                NombreEstado = cambioEstadoFS.Estado.Nombre,
-                FechaHoraRegistro = cambioEstadoFS.FechaHoraInicio,
-                Motivos = cambioEstadoFS.Motivos.ToList()
+                dentificadorSismografo = sismografo.IdentificadorSismografo,
+                NombreEstado = ordenSeleccionada.Estado.Nombre,
+                FechaHoraRegistro = DateTime.Now,
+                Comentarios = ordenSeleccionada.ObservacionCierre,
+                Motivos = motivosSeleccionados.Select(m => m.TipoMotivo.Descripcion).ToList()
             };
 
-            // Llamar al método enviarMails() con los datos
+            InterfazMail interfazMail = new InterfazMail();
+            interfazMail.EnviarMails(mailsResponsables, datosNotificacion);
+        }
+
+        public void publicarMonitores()
+        {
+            if (ordenSeleccionada == null)
+                throw new Exception("No hay orden seleccionada para publicar monitores.");
+
 
         }
     }

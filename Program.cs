@@ -263,20 +263,15 @@ app.MapPost("/enviar-mail", (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
+        gestor.EnviarNotificacionPorMail();
+        
         var mailsResponsables = gestor.ObtenerMailsResponsableReparacion();
         
-        foreach (var email in mailsResponsables)
+        return Results.Ok(new
         {
-            // interfaz
-        }
-        
-        // Publicar en monitores CCRS
-        // pantallaCCRS.Publicar();
-        
-        return Results.Ok(new { 
-            success = true, 
+            success = true,
             message = "Notificaciones por defecto enviadas correctamente",
-            emailsEnviados = mailsResponsables.Count 
+            emailsEnviados = mailsResponsables.Count
         });
     }
     catch (Exception ex)

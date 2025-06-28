@@ -20,6 +20,15 @@ namespace PPAI_backend.models.entities
         {
             return Ambito.ToLower() == "sismógrafo";
         }
+        public bool esAmbitoOrden()
+        {
+            return Ambito.ToLower() == "OrdenDeInspeccion";
+        }
+
+        public bool esEstadoCerrada()
+        {
+            return Nombre == "Cerrada";
+        } 
         
         public bool estadoFueraServicio()
         {

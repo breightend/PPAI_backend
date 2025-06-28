@@ -89,9 +89,10 @@ namespace PPAI_backend.models.entities
         }
         public List<Motivo> BuscarMotivoFueraDeServicio()
         {
+            //TODO: metodo fuera de servicio tener que ir al motivo 
             return _dataLoader.Motivos.ToList();
         }
-
+        //TODO: referenciar
         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
         {
             if (ordenSeleccionada == null)
@@ -148,7 +149,7 @@ namespace PPAI_backend.models.entities
         }
         public void BuscarEstadoCerrada()
         {
-            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenDeInspeccion");
+            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.esEstadoCerrada() && e.esAmbitoOrden());
 
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenDeInspeccion'.");
@@ -247,7 +248,7 @@ namespace PPAI_backend.models.entities
 
             var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
 
-            var motivosComenterios = motivosSeleccionados.Select(m => 
+            var motivosComenterios = motivosSeleccionados.Select(m =>
                 $"{m.TipoMotivo.Descripcion}: {m.Comentario}").ToList();
 
 
@@ -266,7 +267,7 @@ namespace PPAI_backend.models.entities
 
             var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
 
-            var motivosComenterios = motivosSeleccionados.Select(m => 
+            var motivosComenterios = motivosSeleccionados.Select(m =>
                 $"{m.TipoMotivo.Descripcion}: {m.Comentario}").ToList();
 
             string mensaje = $"Sismógrafo N° {sismografo.IdentificadorSismografo} " +

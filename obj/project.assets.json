@@ -1116,39 +1116,23 @@
     ]
   },
   "packageFolders": {
-<<<<<<< HEAD
-    "C:\\Users\\brend\\.nuget\\packages\\": {},
-=======
     "C:\\Users\\surly\\.nuget\\packages\\": {},
->>>>>>> acfd6ad71d9a95360ba8b2e80a19242309154681
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-<<<<<<< HEAD
-      "projectUniqueName": "C:\\Users\\brend\\OneDrive\\Desktop\\BrendaDevs\\PPAI_backend\\BackendAPI.csproj",
-      "projectName": "BackendAPI",
-      "projectPath": "C:\\Users\\brend\\OneDrive\\Desktop\\BrendaDevs\\PPAI_backend\\BackendAPI.csproj",
-      "packagesPath": "C:\\Users\\brend\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\brend\\OneDrive\\Desktop\\BrendaDevs\\PPAI_backend\\obj\\",
-=======
       "projectUniqueName": "C:\\Users\\surly\\Desktop\\2025\\DSI\\PPAI\\Proyecto2\\PPAI_backend\\BackendAPI.csproj",
       "projectName": "BackendAPI",
       "projectPath": "C:\\Users\\surly\\Desktop\\2025\\DSI\\PPAI\\Proyecto2\\PPAI_backend\\BackendAPI.csproj",
       "packagesPath": "C:\\Users\\surly\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\surly\\Desktop\\2025\\DSI\\PPAI\\Proyecto2\\PPAI_backend\\obj\\",
->>>>>>> acfd6ad71d9a95360ba8b2e80a19242309154681
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-<<<<<<< HEAD
-        "C:\\Users\\brend\\AppData\\Roaming\\NuGet\\NuGet.Config",
-=======
         "C:\\Users\\surly\\AppData\\Roaming\\NuGet\\NuGet.Config",
->>>>>>> acfd6ad71d9a95360ba8b2e80a19242309154681
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1157,7 +1141,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -1175,12 +1158,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-<<<<<<< HEAD
-      },
-      "SdkAnalysisLevel": "9.0.300"
-=======
       }
->>>>>>> acfd6ad71d9a95360ba8b2e80a19242309154681
     },
     "frameworks": {
       "net8.0": {
@@ -1222,11 +1200,7 @@
             "privateAssets": "all"
           }
         },
-<<<<<<< HEAD
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
-=======
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.409/PortableRuntimeIdentifierGraph.json"
->>>>>>> acfd6ad71d9a95360ba8b2e80a19242309154681
       }
     }
   },
@@ -1235,11 +1209,7 @@
       "code": "Undefined",
       "level": "Warning",
       "warningLevel": 1,
-<<<<<<< HEAD
-      "message": "Problem reading the cache file C:\\Users\\brend\\OneDrive\\Desktop\\BrendaDevs\\PPAI_backend\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0."
-=======
-      "message": "Problem reading the cache file C:\\Users\\surly\\Desktop\\2025\\DSI\\PPAI\\Proyecto2\\PPAI_backend\\obj\\project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
->>>>>>> acfd6ad71d9a95360ba8b2e80a19242309154681
+      "message": "Problema al leer el archivo de caché C:\\Users\\surly\\Desktop\\2025\\DSI\\PPAI\\Proyecto2\\PPAI_backend\\obj\\project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
     }
   ]
 }

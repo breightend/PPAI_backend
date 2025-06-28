@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using PPAI_backend.models.entities;
+using PPAI_backend.models.gestor;
 
 namespace PPAI_backend.services
 {

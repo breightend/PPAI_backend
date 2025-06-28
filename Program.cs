@@ -189,7 +189,14 @@ app.MapPost("/confirmar-cierre", (ConfirmarRequest request, GestorCerrarOrdenDeI
             return Results.BadRequest("El cierre no ha sido confirmado.");
         }
         gestor.Confirmar();
+
+        gestor.EnviarNotificacionPorMail();
+
+        gestor.PublicarMonitores();
+
         return Results.Ok("Cierre confirmado correctamente.");
+
+
     }
     catch (Exception ex)
     {
@@ -223,7 +230,7 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
         gestor.ValidarObsYComentario();
         gestor.BuscarEstadoCerrada();
 
-        var resultado = gestor.CerrarOrdenDeInspeccion();
+        var resultado = gestor.CerrarOrdenInspeccion();
         // Obtener la orden cerrada y sus datos relevantes
         var orden = gestor.GetOrdenSeleccionada();
         if (orden == null)
@@ -266,27 +273,7 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
     }
 });
 
-app.MapPost("/enviar-mail", (GestorCerrarOrdenDeInspeccion gestor) =>
-{
-    try
-    {
-        gestor.EnviarNotificacionPorMail();
-        
-        var mailsResponsables = gestor.ObtenerMailsResponsableReparacion();
-        
-        return Results.Ok(new
-        {
-            success = true,
-            message = "Notificaciones por defecto enviadas correctamente",
-            emailsEnviados = mailsResponsables.Count
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest($"Error enviando notificaciones: {ex.Message}");
-    }
 
-});
 async Task ConfigurarRelacionesEntidades(IServiceProvider services)
 {
     using var scope = services.CreateScope();

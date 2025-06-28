@@ -6,6 +6,7 @@ using System.Text.Json;
 using PPAI_backend.datos.dtos;
 using PPAI_backend.services;
 using PPAI_backend.models.gestor;
+using PPAI_backend.models.monitores;
 
 
 namespace PPAI_backend.models.entities
@@ -153,7 +154,7 @@ namespace PPAI_backend.models.entities
                 throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenDeInspeccion'.");
         }
 
-        public string CerrarOrdenDeInspeccion()
+        public string CerrarOrdenInspeccion()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para cerrar.");
@@ -246,25 +247,33 @@ namespace PPAI_backend.models.entities
 
             var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
 
-            var datosNotificacion = new
-            {
-                dentificadorSismografo = sismografo.IdentificadorSismografo,
-                NombreEstado = ordenSeleccionada.Estado.Nombre,
-                FechaHoraRegistro = DateTime.Now,
-                Comentarios = ordenSeleccionada.ObservacionCierre,
-                Motivos = motivosSeleccionados.Select(m => m.TipoMotivo.Descripcion).ToList()
-            };
+            var motivosComenterios = motivosSeleccionados.Select(m => 
+                $"{m.TipoMotivo.Descripcion}: {m.Comentario}").ToList();
 
+
+            string mensaje = $"Sismografo N° {sismografo.IdentificadorSismografo} " +
+                $"con el estado '{ordenSeleccionada.Estado.Nombre}' y los siguientes motivos y comentarios: " +
+                $"{string.Join(", ", motivosComenterios)}.";
             InterfazMail interfazMail = new InterfazMail();
-            interfazMail.EnviarMails(mailsResponsables, datosNotificacion);
+
+            interfazMail.EnviarMails(mailsResponsables, mensaje);
         }
 
-        public void publicarMonitores()
+        public void PublicarMonitores()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay orden seleccionada para publicar monitores.");
 
+            var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
 
+            var motivosComenterios = motivosSeleccionados.Select(m => 
+                $"{m.TipoMotivo.Descripcion}: {m.Comentario}").ToList();
+
+            string mensaje = $"Sismógrafo N° {sismografo.IdentificadorSismografo} " +
+                $"con el estado '{ordenSeleccionada.Estado.Nombre}' y los siguientes motivos y comentarios: " +
+                $"{string.Join(", ", motivosComenterios)}.";
+            PantallaCCRS pantallaCCRS = new PantallaCCRS();
+            pantallaCCRS.publicar(mensaje);
         }
     }
 }

@@ -19,9 +19,10 @@ namespace PPAI_backend.models.entities
         public string GetMail() { return Mail; }
         public string GetTelefono() { return Telefono; }
         public Rol GetRol() { return Rol; }
+
         public bool EsResponsableDeReparacion()
         {
-            return Rol.Descripcion == "ResponsableDeReparacion";
+            return Rol != null && Rol.esReparacion();
         }
         
 

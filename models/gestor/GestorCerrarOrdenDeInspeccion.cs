@@ -89,42 +89,49 @@ namespace PPAI_backend.models.entities
         }
         public List<Motivo> BuscarMotivoFueraDeServicio()
         {
-            //TODO: metodo fuera de servicio tener que ir al motivo 
-            return _dataLoader.Motivos.ToList();
-        }
-        //TODO: referenciar
-        public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
-        {
-            if (ordenSeleccionada == null)
-                throw new Exception("No hay una orden seleccionada para tomar los motivos.");
+            List<Motivo> motivosFueraDeServicio = new List<Motivo>();
 
-            if (seleccionados == null || !seleccionados.Any())
-                throw new Exception("Debe seleccionar al menos un motivo.");
-
-            motivosSeleccionados.Clear();
-
-            // Usar el _dataLoader para obtener los motivos, igual que BuscarEmpleadoRI()
-            var todosLosMotivos = _dataLoader.Motivos.ToList();
-
-            foreach (var dto in seleccionados)
+            foreach (var motivo in _dataLoader.Motivos)
             {
-                var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
-                if (baseMotivo == null)
-                    throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
-
-                var motivo = new Motivo
-                {
-                    Id = baseMotivo.Id,
-                    TipoMotivo = baseMotivo.TipoMotivo,
-                    Comentario = dto.Comentario ?? ""
-                };
-
-                motivosSeleccionados.Add(motivo);
+                var motivoFueraServicio = motivo.ObtenerMotivoFueraServicio();
+                motivosFueraDeServicio.Add(motivoFueraServicio);
             }
 
-            Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
+            return motivosFueraDeServicio;
         }
+        //TODO: referenciar
+        /*         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
+                {
+                    if (ordenSeleccionada == null)
+                        throw new Exception("No hay una orden seleccionada para tomar los motivos.");
 
+                    if (seleccionados == null || !seleccionados.Any())
+                        throw new Exception("Debe seleccionar al menos un motivo.");
+
+                    motivosSeleccionados.Clear();
+
+
+                    var todosLosMotivos = _dataLoader.Motivos.ToList();
+
+                    foreach (var dto in seleccionados)
+                    {
+                        var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
+                        if (baseMotivo == null)
+                            throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
+
+                        var motivo = new Motivo
+                        {
+                            Id = baseMotivo.Id,
+                            TipoMotivo = baseMotivo.TipoMotivo,
+                            Comentario = dto.Comentario ?? ""
+                        };
+
+                        motivosSeleccionados.Add(motivo);
+                    }
+
+                    Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
+                }
+         */
 
         public string Confirmar()
         {

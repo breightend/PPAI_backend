@@ -16,6 +16,8 @@ namespace PPAI_backend.models.entities
 
         public Motivo ObtenerMotivoFueraServicio()
         {
+            // Ask TipoMotivo for its description
+            var descripcion = TipoMotivo.Descripcion;
             return this;
         }
 

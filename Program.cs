@@ -166,7 +166,7 @@ app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO request, GestorCe
         {
             Console.WriteLine($"ID: {motivo.IdMotivo}, Comentario: {motivo.Comentario}");
         }
-        gestor.TomarMotivosSeleccionados(request.Motivos);
+        gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
 
         return Results.Ok("Motivos recibidos correctamente.");
     }
@@ -226,7 +226,7 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
     {
         gestor.TomarOrdenSeleccionada(request.OrdenId);
         gestor.TomarObservacion(request.Observation);
-        gestor.TomarMotivosSeleccionados(request.Motivos);
+        gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
         gestor.ValidarObsYComentario();
         gestor.BuscarEstadoCerrada();
 

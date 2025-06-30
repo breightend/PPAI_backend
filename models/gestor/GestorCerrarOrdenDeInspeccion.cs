@@ -99,8 +99,8 @@ namespace PPAI_backend.models.entities
 
             return motivosFueraDeServicio;
         }
-        //TODO: referenciar
-        /*         public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
+        /* 
+                public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
                 {
                     if (ordenSeleccionada == null)
                         throw new Exception("No hay una orden seleccionada para tomar los motivos.");
@@ -130,8 +130,7 @@ namespace PPAI_backend.models.entities
                     }
 
                     Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
-                }
-         */
+                } */
 
         public string Confirmar()
         {
@@ -199,7 +198,7 @@ namespace PPAI_backend.models.entities
         }
 
 
-        public void TomarMotivosSeleccionados(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
+        public void TomarMotivoFueraDeServicioYComentario(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
         {
             motivosSeleccionados.Clear();
             // Usar el _dataLoader para obtener los motivos, igual que BuscarEmpleadoRI()

@@ -28,8 +28,8 @@ namespace PPAI_backend.models.entities
         public bool esEstadoCerrada()
         {
             return Nombre == "Cerrada";
-        } 
-        
+        }
+
         public bool estadoFueraServicio()
         {
             return Nombre == "Fuera de Servicio";

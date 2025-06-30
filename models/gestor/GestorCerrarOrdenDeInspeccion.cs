@@ -174,7 +174,7 @@ namespace PPAI_backend.models.entities
 
             return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
         }
-        public void BuscarEstadoFueraServicio()
+        public void BuscarEstadoFueraServicio(Sismografo sismografo)
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay orden seleccionada.");
@@ -193,15 +193,13 @@ namespace PPAI_backend.models.entities
             if (estadoFueraServicio == null)
                 throw new Exception("No se encontró el estado 'Fuera de servicio' con ámbito 'Sismógrafo'.");
 
-            var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
-            sismografo.crearCambioEstadoSismografo(estadoFueraServicio, motivosSeleccionados, DateTime.Now);
+            ordenSeleccionada.EstacionSismologica.ActualizarSismografo(sismografo, DateTime.Now);
         }
 
 
         public void TomarMotivoFueraDeServicioYComentario(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
         {
             motivosSeleccionados.Clear();
-            // Usar el _dataLoader para obtener los motivos, igual que BuscarEmpleadoRI()
             var todosLosMotivos = _dataLoader.Motivos.ToList();
 
             foreach (var dto in motivosDto)
@@ -210,7 +208,6 @@ namespace PPAI_backend.models.entities
                 if (baseMotivo == null)
                     throw new Exception($"Motivo con ID {dto.IdMotivo} no encontrado.");
 
-                // Crear un nuevo objeto motivo (el seleccionado) con el comentario agregado por el usuario.
                 var motivo = new Motivo
                 {
                     Id = baseMotivo.Id,

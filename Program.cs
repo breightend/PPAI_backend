@@ -33,12 +33,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
-//TODO: Terminar de haccer diagrama de secuencia 
-// Cargar todos los datos y configurar relaciones al inicio de la aplicación.
-//TODO: ver el tema motivo que no se carga bien
-//TODO: Agregar las referencias 
-//TODO: Agregar alternativas 4 y 6.
-//TODO: Agregar la parte de monitores.
+
 
 try
 {
@@ -50,7 +45,6 @@ catch (Exception ex)
     throw;
 }
 
-// Swagger en desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -59,17 +53,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// ========== ENDPOINTS QUE SOLO USAN EL GESTOR ==========
 
-// Ejemplo perfecto: Navegación Sesion -> Usuario -> Empleado
 app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        // El gestor maneja toda la lógica: 
-        // 1. Busca la sesión activa
-        // 2. De la sesión obtiene el usuario
-        // 3. Del usuario obtiene el empleado
+
         var empleado = gestor.BuscarEmpleadoRI();
         return Results.Ok(new
         {
@@ -126,10 +115,7 @@ app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        // El gestor maneja toda la lógica:
-        // 1. Obtiene el empleado logueado (Sesion -> Usuario -> Empleado)
-        // 2. Busca las órdenes de ese empleado
-        // 3. Las ordena por fecha
+
         var empleado = gestor.BuscarEmpleadoRI();
         var ordenes = gestor.BuscarOrdenInspeccion(empleado);
 
@@ -231,7 +217,6 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
         gestor.BuscarEstadoCerrada();
 
         var resultado = gestor.CerrarOrdenInspeccion();
-        // Obtener la orden cerrada y sus datos relevantes
         var orden = gestor.GetOrdenSeleccionada();
         if (orden == null)
             return Results.BadRequest("No se encontró la orden seleccionada.");
@@ -273,6 +258,64 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
     }
 });
 
+app.MapPost("/buscar-estado-fuera-servicio", (BuscarEstadoFueraServicioRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
+{
+    try
+    {
+        gestor.TomarOrdenSeleccionada(request.OrdenId);
+
+        var sismografo = new Sismografo
+        {
+            IdentificadorSismografo = request.Sismografo.IdentificadorSismografo,
+            NroSerie = request.Sismografo.NroSerie,
+            FechaAdquisicion = request.Sismografo.FechaAdquisicion,
+            CambioEstado = new List<CambioEstado>()
+        };
+
+        gestor.BuscarEstadoFueraServicio(sismografo);
+
+        var orden = gestor.GetOrdenSeleccionada();
+        if (orden == null)
+            return Results.BadRequest("No se encontró la orden seleccionada.");
+
+        var sismografoOrden = orden.EstacionSismologica?.Sismografo;
+        if (sismografoOrden == null)
+            return Results.BadRequest("No se encontró el sismógrafo asociado a la orden.");
+
+        var estadoActual = sismografoOrden.CambioEstado
+            .Where(ce => ce.Estado.esAmbitoSismografo())
+            .OrderByDescending(ce => ce.FechaHoraInicio)
+            .FirstOrDefault();
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Estado fuera de servicio procesado correctamente",
+            data = new
+            {
+                ordenId = request.OrdenId,
+                sismografo = new
+                {
+                    identificador = sismografoOrden.IdentificadorSismografo,
+                    nroSerie = sismografoOrden.NroSerie,
+                    fechaAdquisicion = sismografoOrden.FechaAdquisicion,
+                    estadoActual = estadoActual != null ? new
+                    {
+                        nombre = estadoActual.Estado.Nombre,
+                        descripcion = estadoActual.Estado.Descripcion,
+                        ambito = estadoActual.Estado.Ambito,
+                        fechaInicio = estadoActual.FechaHoraInicio,
+                        fechaFin = estadoActual.FechaHoraFin
+                    } : null
+                }
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error al buscar estado fuera de servicio: {ex.Message}");
+    }
+});
 
 async Task ConfigurarRelacionesEntidades(IServiceProvider services)
 {
@@ -299,7 +342,7 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
             var sesionActiva = new Sesion
             {
                 FechaHoraInicio = DateTime.Now.AddHours(-2),
-                FechaHoraFin = default, // Sin fecha fin = sesión activa
+                FechaHoraFin = default, 
                 Usuario = usuarioRI
             };
 

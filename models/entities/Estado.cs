@@ -18,11 +18,11 @@ namespace PPAI_backend.models.entities
 
         public bool esAmbitoSismografo()
         {
-            return Ambito.ToLower() == "sismógrafo";
+            return Ambito.ToLower() == "Sismografo".ToLower();
         }
         public bool esAmbitoOrden()
         {
-            return Ambito.ToLower() == "OrdenDeInspeccion";
+            return Ambito.ToLower() == "OrdenDeInspeccion".ToLower();
         }
 
         public bool esEstadoCerrada()

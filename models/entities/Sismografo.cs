@@ -36,12 +36,6 @@ namespace PPAI_backend.models.entities
 
         public void crearCambioEstadoSismografo(Estado nuevoEstado, List<MotivoFueraDeServicio> motivos, DateTime horaActual)
         {
-            var cambioActual = CambioEstado
-                .FirstOrDefault(ce => ce.esEstadoActual() && ce.Estado.esAmbitoSismografo());
-
-            if (cambioActual != null)
-                cambioActual.setFechaHoraFin(horaActual);
-
             var nuevoCambio = new CambioEstado
             {
                 FechaHoraInicio = horaActual,

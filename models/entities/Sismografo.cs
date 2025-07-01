@@ -35,7 +35,7 @@ namespace PPAI_backend.models.entities
             crearCambioEstadoSismografo(sismografo.CambioEstado.Last().Estado, sismografo.CambioEstado.Last().Motivos, horaActual);
         }
 
-        public void crearCambioEstadoSismografo(Estado nuevoEstado, List<Motivo> motivos, DateTime horaActual)
+        public void crearCambioEstadoSismografo(Estado nuevoEstado, List<MotivoFueraDeServicio> motivos, DateTime horaActual)
         {
             // Buscar cambio de estado actual con ámbito "Sismógrafo"
             var cambioActual = CambioEstado

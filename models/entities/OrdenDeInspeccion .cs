@@ -44,7 +44,7 @@ namespace PPAI_backend.models.entities
             return EstacionSismologica.getNombreEIdentificador();
         }
 
-        public void cerrar(Estado estadoCerrada, List<Motivo> motivosSeleccionados, DateTime horaActual)
+        public void cerrar(Estado estadoCerrada, List<MotivoFueraDeServicio> motivosSeleccionados, DateTime horaActual)
         {
             var estadoActual = CambioEstado.FirstOrDefault(ce => ce.esEstadoActual());
 
@@ -55,7 +55,7 @@ namespace PPAI_backend.models.entities
             CrearCambioEnLaOrdenDeInspeccion(estadoCerrada, horaActual, motivosSeleccionados);
         }
 
-        public void CrearCambioEnLaOrdenDeInspeccion(Estado estado, DateTime horaActual, List<Motivo> motivosSeleccionados)
+        public void CrearCambioEnLaOrdenDeInspeccion(Estado estado, DateTime horaActual, List<MotivoFueraDeServicio> motivosSeleccionados)
         {
             var nuevoCambio = new CambioEstado
             {

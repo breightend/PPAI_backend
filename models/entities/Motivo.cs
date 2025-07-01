@@ -6,15 +6,14 @@ using PPAI_backend.services;
 
 namespace PPAI_backend.models.entities
 {
-    //TODO: colocar conexion con tipo motivo
-    public class Motivo
+    public class MotivoFueraDeServicio
     {
         public required int Id { get; set; }
         public required TipoMotivo TipoMotivo { get; set; }
         public string? Comentario { get; set; }
 
 
-        public Motivo ObtenerMotivoFueraServicio()
+        public MotivoFueraDeServicio ObtenerMotivoFueraServicio()
         {
             // Ask TipoMotivo for its description
             var descripcion = TipoMotivo.Descripcion;

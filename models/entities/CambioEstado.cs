@@ -14,7 +14,7 @@ namespace PPAI_backend.models.entities
         // Relacion con la clase Estado:
         public required Estado Estado { get; set; }
 
-        public required List<Motivo> Motivos { get; set; }
+        public required List<MotivoFueraDeServicio> Motivos { get; set; }
 
         public CambioEstado() { }
 

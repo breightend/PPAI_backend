@@ -15,14 +15,14 @@ namespace PPAI_backend.services
         public List<Empleado> Empleados { get; set; } = new();
         public List<Usuario> Usuarios { get; set; } = new();
         public List<Estado> Estados { get; set; } = new();
-        public List<Motivo> Motivos { get; set; } = new();
+        public List<MotivoFueraDeServicio> Motivos { get; set; } = new();
         public List<Sismografo> Sismografos { get; set; } = new();
         public List<EstacionSismologica> EstacionesSismologicas { get; set; } = new();
         public List<OrdenDeInspeccion> OrdenesDeInspeccion { get; set; } = new();
         public List<Sesion> Sesiones { get; set; } = new();
 
         // Lista para almacenar motivos seleccionados temporalmente
-        public List<Motivo> MotivosSeleccionados { get; private set; } = new();
+        public List<MotivoFueraDeServicio> MotivosSeleccionados { get; private set; } = new();
 
         public DataLoaderService()
         {
@@ -113,7 +113,7 @@ namespace PPAI_backend.services
         /// <summary>
         /// Guarda los motivos seleccionados (puedes adaptar la lógica según tu necesidad)
         /// </summary>
-        public void GuardarMotivosSeleccionados(List<Motivo> motivos)
+        public void GuardarMotivosSeleccionados(List<MotivoFueraDeServicio> motivos)
         {
             MotivosSeleccionados.Clear();
             MotivosSeleccionados.AddRange(motivos);

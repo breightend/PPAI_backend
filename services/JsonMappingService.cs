@@ -15,7 +15,7 @@ namespace PPAI_backend.services
         private Dictionary<string, Empleado> _empleadosMap = new();
         private Dictionary<string, Estado> _estadosMap = new();
         private Dictionary<int, Rol> _rolesMap = new();
-        private Dictionary<int, Motivo> _motivosMap = new();
+        private Dictionary<int, MotivoFueraDeServicio> _motivosMap = new();
         private Dictionary<string, Usuario> _usuariosMap = new();
         private Dictionary<string, Sismografo> _sismografosMap = new();
         private Dictionary<string, EstacionSismologica> _estacionesMap = new();
@@ -114,11 +114,11 @@ namespace PPAI_backend.services
             return estados;
         }
 
-        public List<Motivo> GetMotivos()
+        public List<MotivoFueraDeServicio> GetMotivos()
         {
             if (_datosDto == null) throw new InvalidOperationException("Datos no cargados");
 
-            var motivos = new List<Motivo>();
+            var motivos = new List<MotivoFueraDeServicio>();
 
             foreach (var motivoDto in _datosDto.Motivos)
             {
@@ -128,7 +128,7 @@ namespace PPAI_backend.services
                     Descripcion = motivoDto.TipoMotivo.Descripcion
                 };
 
-                var motivo = new Motivo
+                var motivo = new MotivoFueraDeServicio
                 {
                     Id = motivoDto.Id,
                     TipoMotivo = tipoMotivo,
@@ -305,7 +305,7 @@ namespace PPAI_backend.services
                 var motivos = cambioDto.Motivos
                     .Select(motivoId => _motivosMap.GetValueOrDefault(motivoId))
                     .Where(motivo => motivo != null)
-                    .Cast<Motivo>()  // Explicitly cast to non-nullable
+                    .Cast<MotivoFueraDeServicio>()  // Explicitly cast to non-nullable
                     .ToList();
 
                 var cambio = new CambioEstado

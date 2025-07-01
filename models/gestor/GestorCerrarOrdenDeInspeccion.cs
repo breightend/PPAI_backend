@@ -19,7 +19,7 @@ namespace PPAI_backend.models.entities
         {
             Usuario = new Usuario()
         };
-        private List<Motivo> motivosSeleccionados = new();
+        private List<MotivoFueraDeServicio> motivosSeleccionados = new();
 
         private Empleado? empleado;
 
@@ -87,9 +87,9 @@ namespace PPAI_backend.models.entities
             ordenSeleccionada.ObservacionCierre = observacion;
 
         }
-        public List<Motivo> BuscarMotivoFueraDeServicio()
+        public List<MotivoFueraDeServicio> BuscarMotivoFueraDeServicio()
         {
-            List<Motivo> motivosFueraDeServicio = new List<Motivo>();
+            List<MotivoFueraDeServicio> motivosFueraDeServicio = new List<MotivoFueraDeServicio>();
 
             foreach (var motivo in _dataLoader.Motivos)
             {
@@ -137,7 +137,6 @@ namespace PPAI_backend.models.entities
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para cerrar.");
 
-            // ordenSeleccionada.FechaHoraCierre = DateTime.Now; // Toma la hora de cierre de la orden de inspeccion
 
             return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
         }
@@ -150,7 +149,7 @@ namespace PPAI_backend.models.entities
             if (string.IsNullOrWhiteSpace(ordenSeleccionada.ObservacionCierre))
                 throw new Exception("Debe ingresar una observación para cerrar la orden.");
 
-            if (motivosSeleccionados == null) //|| !motivosSeleccionados.Any()
+            if (motivosSeleccionados == null)
                 throw new Exception("Debe seleccionar al menos un motivo.");
         }
         public void BuscarEstadoCerrada()
@@ -208,7 +207,7 @@ namespace PPAI_backend.models.entities
                 if (baseMotivo == null)
                     throw new Exception($"Motivo con ID {dto.IdMotivo} no encontrado.");
 
-                var motivo = new Motivo
+                var motivo = new MotivoFueraDeServicio
                 {
                     Id = baseMotivo.Id,
                     TipoMotivo = baseMotivo.TipoMotivo,

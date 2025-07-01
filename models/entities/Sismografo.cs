@@ -23,29 +23,25 @@ namespace PPAI_backend.models.entities
             CambioEstado.Add(nuevoEstado);
         }
 
-        public void ActualizarSismografo(Sismografo sismografo, DateTime horaActual)
+        public void ActualizarSismografo( DateTime horaActual, Estado estado, List<MotivoFueraDeServicio> motivos)
         {
-            if (sismografo == null)
-                throw new ArgumentNullException(nameof(sismografo), "El sismógrafo no puede ser nulo.");
+            if (estado == null)
+                throw new ArgumentNullException(nameof(estado), "El estado no puede ser nulo.");
+            if (motivos == null || !motivos.Any())
+                throw new ArgumentNullException(nameof(motivos), "La lista de motivos no puede ser nula o vacía.");
 
-            FechaAdquisicion = sismografo.FechaAdquisicion;
-            IdentificadorSismografo = sismografo.IdentificadorSismografo;
-            NroSerie = sismografo.NroSerie;
-            CambioEstado = sismografo.CambioEstado;
-            crearCambioEstadoSismografo(sismografo.CambioEstado.Last().Estado, sismografo.CambioEstado.Last().Motivos, horaActual);
+            crearCambioEstadoSismografo(estado, motivos, horaActual);
         }
+
 
         public void crearCambioEstadoSismografo(Estado nuevoEstado, List<MotivoFueraDeServicio> motivos, DateTime horaActual)
         {
-            // Buscar cambio de estado actual con ámbito "Sismógrafo"
             var cambioActual = CambioEstado
                 .FirstOrDefault(ce => ce.esEstadoActual() && ce.Estado.esAmbitoSismografo());
 
-            // Cerrar el estado actual si corresponde
             if (cambioActual != null)
                 cambioActual.setFechaHoraFin(horaActual);
 
-            // Crear nuevo cambio de estado con los motivos
             var nuevoCambio = new CambioEstado
             {
                 FechaHoraInicio = horaActual,

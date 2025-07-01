@@ -24,11 +24,12 @@ namespace PPAI_backend.models.entities
             return (Nombre, Sismografo.getIdentificadorSismografo());
         }
         
-        public void ActualizarSismografo(Sismografo sismografo, DateTime horaActual)
+        public void ActualizarSismografo(Sismografo sismografo, DateTime horaActual, Estado estado, List<MotivoFueraDeServicio> motivos)
         {
             if (sismografo == null)
                 throw new ArgumentNullException(nameof(sismografo), "El sismógrafo no puede ser nulo.");
-            Sismografo.ActualizarSismografo(sismografo, horaActual);
+            Sismografo.ActualizarSismografo( horaActual, estado, motivos); 
         }
+
     }
 }

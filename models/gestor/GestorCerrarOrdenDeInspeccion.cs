@@ -99,38 +99,7 @@ namespace PPAI_backend.models.entities
 
             return motivosFueraDeServicio;
         }
-        /* 
-                public void TomarMotivoFueraDeServicio(List<MotivoDTO> seleccionados)
-                {
-                    if (ordenSeleccionada == null)
-                        throw new Exception("No hay una orden seleccionada para tomar los motivos.");
 
-                    if (seleccionados == null || !seleccionados.Any())
-                        throw new Exception("Debe seleccionar al menos un motivo.");
-
-                    motivosSeleccionados.Clear();
-
-
-                    var todosLosMotivos = _dataLoader.Motivos.ToList();
-
-                    foreach (var dto in seleccionados)
-                    {
-                        var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.Id);
-                        if (baseMotivo == null)
-                            throw new Exception($"Motivo con ID {dto.Id} no encontrado.");
-
-                        var motivo = new Motivo
-                        {
-                            Id = baseMotivo.Id,
-                            TipoMotivo = baseMotivo.TipoMotivo,
-                            Comentario = dto.Comentario ?? ""
-                        };
-
-                        motivosSeleccionados.Add(motivo);
-                    }
-
-                    Console.WriteLine("Los motivos seleccionados han sido registrados con éxito!");
-                } */
 
         public string Confirmar()
         {
@@ -154,7 +123,7 @@ namespace PPAI_backend.models.entities
         }
         public void BuscarEstadoCerrada()
         {
-            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.esEstadoCerrada() && e.esAmbitoOrden());
+            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.esAmbitoOrden() && e.esEstadoCerrada());
 
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenDeInspeccion'.");
@@ -165,7 +134,7 @@ namespace PPAI_backend.models.entities
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para cerrar.");
 
-            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Nombre == "Cerrada" && e.Ambito == "OrdenDeInspeccion");
+            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Ambito == "OrdenDeInspeccion" && e.Nombre == "Cerrada");
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada'.");
 
@@ -192,7 +161,8 @@ namespace PPAI_backend.models.entities
             if (estadoFueraServicio == null)
                 throw new Exception("No se encontró el estado 'Fuera de servicio' con ámbito 'Sismógrafo'.");
 
-            ordenSeleccionada.EstacionSismologica.ActualizarSismografo(sismografo, DateTime.Now);
+            ordenSeleccionada.EstacionSismologica.ActualizarSismografo(sismografo, DateTime.Now,
+                estadoFueraServicio, motivosSeleccionados);
         }
 
 

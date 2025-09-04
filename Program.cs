@@ -1,8 +1,11 @@
 using PPAI_backend.datos.dtos;
 using PPAI_backend.models.entities;
 using PPAI_backend.services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 
 builder.WebHost.UseUrls("http://localhost:5199");
 
@@ -27,12 +30,16 @@ builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+
+builder.Services.AddControllers();
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
-
 
 
 try
@@ -342,7 +349,7 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
             var sesionActiva = new Sesion
             {
                 FechaHoraInicio = DateTime.Now.AddHours(-2),
-                FechaHoraFin = default, 
+                FechaHoraFin = default,
                 Usuario = usuarioRI
             };
 

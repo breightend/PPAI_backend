@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,8 +8,11 @@ namespace PPAI_backend.models.entities
 {
     public class Sismografo
     {
-        public DateTime FechaAdquisicion { get; set; }
+        [Key]
         public int IdentificadorSismografo { get; set; }
+
+        
+        public DateTime FechaAdquisicion { get; set; }
         public int NroSerie { get; set; }
         public required List<CambioEstado> CambioEstado { get; set; }
 

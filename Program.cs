@@ -30,9 +30,10 @@ builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString)
+);
 
 builder.Services.AddControllers();
 var app = builder.Build();
@@ -184,8 +185,6 @@ app.MapPost("/confirmar-cierre", (ConfirmarRequest request, GestorCerrarOrdenDeI
         gestor.Confirmar();
 
         gestor.EnviarNotificacionPorMail();
-
-        gestor.PublicarMonitores();
 
         return Results.Ok("Cierre confirmado correctamente.");
 
@@ -365,5 +364,6 @@ async Task ConfigurarRelacionesEntidades(IServiceProvider services)
         throw;
     }
 }
+
 
 app.Run();

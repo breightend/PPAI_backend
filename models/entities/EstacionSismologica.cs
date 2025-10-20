@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,7 +8,10 @@ namespace PPAI_backend.models.entities
 {
     public class EstacionSismologica
     {
+        [Key]
         public int CodigoEstacion { get; set; }
+
+        
         public bool DocumentoCertificacionAdq { get; set; }
         public DateTime FechaSolicitudCertificacion { get; set; }
         public double Latitud { get; set; }

@@ -7,7 +7,8 @@ using PPAI_backend.datos.dtos;
 using PPAI_backend.services;
 using PPAI_backend.models.gestor;
 using PPAI_backend.models.monitores;
-
+using PPAI_backend.models.interfaces;
+using PPAI_backend.models.observador;
 
 namespace PPAI_backend.models.entities
 {
@@ -208,6 +209,7 @@ namespace PPAI_backend.models.entities
             }
             return mailsResponsableReparacion;
         }
+
         public void EnviarNotificacionPorMail()
         {
             var mailsResponsables = ObtenerMailsResponsableReparacion();
@@ -231,22 +233,17 @@ namespace PPAI_backend.models.entities
 
             interfazMail.EnviarMails(mailsResponsables, mensaje);
         }
-
-        public void PublicarMonitores()
+        public void Suscribir(ObservadorMail observador)
         {
-            if (ordenSeleccionada == null)
-                throw new Exception("No hay orden seleccionada para publicar monitores.");
-
-            var sismografo = ordenSeleccionada.EstacionSismologica.Sismografo;
-
-            var motivosComenterios = motivosSeleccionados.Select(m =>
-                $"{m.TipoMotivo.Descripcion}: {m.Comentario}").ToList();
-
-            string mensaje = $"Sismógrafo N° {sismografo.IdentificadorSismografo} " +
-                $"con el estado '{ordenSeleccionada.Estado.Nombre}' y los siguientes motivos y comentarios: " +
-                $"{string.Join(", ", motivosComenterios)}.";
-            PantallaCCRS pantallaCCRS = new PantallaCCRS();
-            pantallaCCRS.publicar(mensaje);
+            // Lógica para suscribir un observador
         }
+
+        public void Notificar()
+        {
+            ObservadorMail observador = new ObservadorMail();
+            //metodo notificar que esta en el observador 
+            //metodo notificar que esta en la pantalla de los cors
+        }
+
     }
 }

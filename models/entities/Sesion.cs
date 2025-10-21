@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +8,10 @@ namespace PPAI_backend.models.entities
 {
     public class Sesion
     {
+        [Key]
+        public int Id { get; set; }
+
+        
         public DateTime FechaHoraInicio { get; set; }
         public DateTime FechaHoraFin { get; set; }
 

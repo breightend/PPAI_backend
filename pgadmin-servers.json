@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "SismosDB Local",
+      "Group": "Servers",
+      "Host": "host.docker.internal",
+      "Port": 5432,
+      "MaintenanceDB": "SismosDB",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}

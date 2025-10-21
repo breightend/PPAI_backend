@@ -1,1 +1,14 @@
+# Local environment files
+.env
+
+# Docker volumes (bind mounts)
+postgres-data/
+pgadmin-data/
+
+# pgAdmin password file (contains credentials)
+pgadmin-pgpass
+
+# Build outputs (if not already globally ignored)
+bin/
+obj/
 .DS_store

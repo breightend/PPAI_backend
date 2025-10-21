@@ -588,3 +588,6 @@ C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\runtime
 C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
+C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\Npgsql.dll
+C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Users\brend\OneDrive\Desktop\BrendaDevs\PPAI_backend\bin\Debug\net8.0\pgadmin-servers.json

@@ -17,7 +17,6 @@ namespace PPAI_backend.models.entities
         public string Telefono { get; set; } = string.Empty;
         public required Rol Rol { get; set; }
 
-        // Metodos:
         public string GetApellido() { return Apellido; }
         public string GetNombre() { return Nombre; }
         public string GetMail() { return Mail; }

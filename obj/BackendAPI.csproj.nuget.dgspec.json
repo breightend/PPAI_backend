@@ -51,6 +51,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Bogus": {
+              "target": "Package",
+              "version": "[35.6.4, )"
+            },
             "DotNetEnv": {
               "target": "Package",
               "version": "[3.1.1, )"

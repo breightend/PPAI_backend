@@ -46,6 +46,7 @@ builder.Services.AddSingleton<JsonMappingService>();
 builder.Services.AddSingleton<DataLoaderService>();
 builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 builder.Services.AddScoped<IObservadorNotificacion, EmailService>();
+builder.Services.AddScoped<DatabaseSeeder>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -80,6 +81,57 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Endpoint para generar datos aleatorios
+app.MapPost("/seed-database", async (DatabaseSeeder seeder) =>
+{
+    try
+    {
+        await seeder.SeedDatabaseAsync();
+        await seeder.MostrarEstadisticas();
+        
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Base de datos poblada exitosamente con datos aleatorios",
+            timestamp = DateTime.Now
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new
+        {
+            success = false,
+            message = "Error al poblar la base de datos",
+            error = ex.Message,
+            timestamp = DateTime.Now
+        });
+    }
+});
+
+// Endpoint para mostrar estadísticas de la base de datos
+app.MapGet("/database-stats", async (DatabaseSeeder seeder) =>
+{
+    try
+    {
+        await seeder.MostrarEstadisticas();
+        
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Estadísticas mostradas en consola",
+            timestamp = DateTime.Now
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new
+        {
+            success = false,
+            message = "Error al obtener estadísticas",
+            error = ex.Message
+        });
+    }
+});
 
 app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
 {

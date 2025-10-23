@@ -1,11 +1,15 @@
 using PPAI_backend.datos.dtos;
 using PPAI_backend.models.entities;
+using PPAI_backend.models.interfaces;
 using PPAI_backend.services;
 using Microsoft.EntityFrameworkCore;
+using SendGrid;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// Configurar variables de entorno desde .env si existe
+DotNetEnv.Env.Load();
 
 builder.WebHost.UseUrls("http://localhost:5199");
 
@@ -24,9 +28,24 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
+// Configurar SendGrid
+var sendGridApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") 
+    ?? builder.Configuration["SendGrid:ApiKey"];
+
+if (!string.IsNullOrEmpty(sendGridApiKey))
+{
+    builder.Services.AddSingleton<ISendGridClient>(provider => new SendGridClient(sendGridApiKey));
+}
+else
+{
+    // Si no hay API key, crear un cliente mock o por defecto
+    builder.Services.AddSingleton<ISendGridClient>(provider => new SendGridClient("mock-api-key"));
+}
+
 builder.Services.AddSingleton<JsonMappingService>();
 builder.Services.AddSingleton<DataLoaderService>();
 builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
+builder.Services.AddScoped<IObservadorNotificacion, EmailService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -170,7 +189,7 @@ app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO request, GestorCe
     }
 });
 
-app.MapPost("/confirmar-cierre", (ConfirmarRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapPost("/confirmar-cierre", async (ConfirmarRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
@@ -184,9 +203,9 @@ app.MapPost("/confirmar-cierre", (ConfirmarRequest request, GestorCerrarOrdenDeI
         }
         gestor.Confirmar();
 
-        gestor.EnviarNotificacionPorMail();
+        await gestor.EnviarNotificacionPorMail();
 
-        return Results.Ok("Cierre confirmado correctamente.");
+        return Results.Ok("Cierre confirmado correctamente y notificaciones enviadas.");
 
 
     }

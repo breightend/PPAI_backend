@@ -15,6 +15,7 @@ namespace PPAI_backend.models.entities
     public class GestorCerrarOrdenDeInspeccion
     {
         private readonly DataLoaderService _dataLoader;
+        private readonly IObservadorNotificacion _emailService;
 
         private Sesion actualSesion = new Sesion
         {
@@ -24,9 +25,10 @@ namespace PPAI_backend.models.entities
 
         private Empleado? empleado;
 
-        public GestorCerrarOrdenDeInspeccion(DataLoaderService dataLoader)
+        public GestorCerrarOrdenDeInspeccion(DataLoaderService dataLoader, IObservadorNotificacion emailService)
         {
             _dataLoader = dataLoader;
+            _emailService = emailService;
         }
 
 
@@ -210,7 +212,7 @@ namespace PPAI_backend.models.entities
             return mailsResponsableReparacion;
         }
 
-        public void EnviarNotificacionPorMail()
+        public async Task EnviarNotificacionPorMail()
         {
             var mailsResponsables = ObtenerMailsResponsableReparacion();
 
@@ -225,13 +227,20 @@ namespace PPAI_backend.models.entities
             var motivosComenterios = motivosSeleccionados.Select(m =>
                 $"{m.TipoMotivo.Descripcion}: {m.Comentario}").ToList();
 
+            string asunto = "Notificación de Cierre de Orden de Inspección Sismológica";
+            string mensaje = $"Estimado responsable de reparación,\n\n" +
+                $"Se ha cerrado una orden de inspección con los siguientes detalles:\n\n" +
+                $"• Sismógrafo N°: {sismografo.IdentificadorSismografo}\n" +
+                $"• Estado: {ordenSeleccionada.Estado.Nombre}\n" +
+                $"• Fecha y hora de cierre: {ordenSeleccionada.FechaHoraCierre:dd/MM/yyyy HH:mm}\n" +
+                $"• Observación de cierre: {ordenSeleccionada.ObservacionCierre}\n\n" +
+                $"Motivos y comentarios:\n{string.Join("\n", motivosComenterios.Select(m => $"- {m}"))}\n\n" +
+                $"Por favor, tome las acciones correspondientes según sea necesario.\n\n" +
+                $"Saludos cordiales,\n" +
+                $"Sistema de Gestión Sismológica";
 
-            string mensaje = $"Sismografo N° {sismografo.IdentificadorSismografo} " +
-                $"con el estado '{ordenSeleccionada.Estado.Nombre}' y los siguientes motivos y comentarios: " +
-                $"{string.Join(", ", motivosComenterios)}.";
-            InterfazMail interfazMail = new InterfazMail();
-
-            interfazMail.EnviarMails(mailsResponsables, mensaje);
+            InterfazMail interfazMail = new InterfazMail(_emailService);
+            await interfazMail.EnviarMails(mailsResponsables, asunto, mensaje);
         }
         public void Suscribir(ObservadorMail observador)
         {

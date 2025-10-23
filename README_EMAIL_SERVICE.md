@@ -2,7 +2,7 @@
 
 ## 📧 Funcionalidad Implementada
 
-Se ha implementado un sistema completo de notificaciones por email para el cierre de órdenes de inspección sismológica utilizando **SendGrid**. 
+Se ha implementado un sistema completo de notificaciones por email para el cierre de órdenes de inspección sismológica utilizando **SendGrid**.
 
 ## 🚀 Características
 
@@ -16,10 +16,12 @@ Se ha implementado un sistema completo de notificaciones por email para el cierr
 ## 📁 Archivos Creados/Modificados
 
 ### Nuevos Archivos:
+
 - `services/EmailService.cs` - Servicio principal de emails
 - `models/interfaces/IObservadorNotificacion.cs` - Interfaz actualizada
 
 ### Archivos Modificados:
+
 - `Program.cs` - Configuración de dependencias
 - `models/gestor/GestorCerrarOrdenDeInspeccion.cs` - Integración del servicio
 - `datos/dtos/InterfazMail.cs` - Adaptación para usar el nuevo servicio
@@ -55,12 +57,14 @@ SENDGRID_FROM_EMAIL=noreply@tudominio.com
 ### Envío Automático
 
 El sistema envía automáticamente emails cuando:
+
 - Se cierra una orden de inspección
 - Se confirma el cierre en el endpoint `/confirmar-cierre`
 
 ### Contenido del Email
 
 Los emails incluyen:
+
 - **Asunto**: "Notificación de Cierre de Orden de Inspección Sismológica"
 - **Información del sismógrafo**: Número identificador
 - **Estado**: Estado actual del equipo
@@ -78,6 +82,7 @@ Los emails se envían automáticamente a todos los empleados que tengan el rol d
 ### POST `/confirmar-cierre`
 
 **Antes:**
+
 ```json
 {
   "confirmado": true
@@ -85,6 +90,7 @@ Los emails se envían automáticamente a todos los empleados que tengan el rol d
 ```
 
 **Ahora:** Mismo request, pero adicionalmente:
+
 - Envía emails automáticamente
 - Retorna confirmación de envío: `"Cierre confirmado correctamente y notificaciones enviadas."`
 
@@ -113,6 +119,7 @@ builder.Services.AddScoped<IObservadorNotificacion, EmailService>();
 ### Modo Simulación
 
 Si no tienes configurada la API Key de SendGrid, el sistema funcionará en modo simulación:
+
 - Los emails se "envían" pero solo se muestran en la consola
 - No se producen errores
 - Ideal para desarrollo y testing
@@ -120,6 +127,7 @@ Si no tienes configurada la API Key de SendGrid, el sistema funcionará en modo 
 ### Logs
 
 Revisa la consola del servidor para ver:
+
 - Confirmación de envíos exitosos
 - Errores de configuración
 - Modo simulación activado
@@ -134,16 +142,19 @@ Revisa la consola del servidor para ver:
 ## 🔍 Troubleshooting
 
 ### Error: "EmailService no configurado"
+
 - Verifica que el archivo `.env` exista
 - Confirma que `SENDGRID_API_KEY` esté definida
 - Reinicia la aplicación después de cambiar el `.env`
 
 ### Error: "Invalid API Key"
+
 - Verifica que la API Key sea correcta
 - Confirma que la API Key tenga permisos de "Mail Send"
 - Asegúrate de no tener espacios extra en el `.env`
 
 ### Error: "Sender email not verified"
+
 - Ve a SendGrid > Settings > Sender Authentication
 - Verifica tu dominio o email individual
 - Actualiza `SENDGRID_FROM_EMAIL` con el email verificado
@@ -151,6 +162,7 @@ Revisa la consola del servidor para ver:
 ## 📞 Soporte
 
 Si tienes problemas con la implementación, verifica:
+
 1. Configuración del archivo `.env`
 2. Logs en la consola del servidor
 3. Estado de tu cuenta de SendGrid

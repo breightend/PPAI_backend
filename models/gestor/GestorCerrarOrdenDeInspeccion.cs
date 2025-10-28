@@ -12,9 +12,8 @@ using PPAI_backend.models.observador;
 
 namespace PPAI_backend.models.entities
 {
-    public class GestorCerrarOrdenDeInspeccion
+    public class GestorCerrarOrdenDeInspeccion : IObservadorNotificacion
     {
-        private readonly DataLoaderService _dataLoader;
         private readonly IObservadorNotificacion _emailService;
 
         private Sesion actualSesion = new Sesion
@@ -90,6 +89,7 @@ namespace PPAI_backend.models.entities
             ordenSeleccionada.ObservacionCierre = observacion;
 
         }
+        
         public List<MotivoFueraDeServicio> BuscarMotivoFueraDeServicio()
         {
             List<MotivoFueraDeServicio> motivosFueraDeServicio = new List<MotivoFueraDeServicio>();
@@ -242,17 +242,12 @@ namespace PPAI_backend.models.entities
             InterfazMail interfazMail = new InterfazMail(_emailService);
             await interfazMail.EnviarMails(mailsResponsables, asunto, mensaje);
         }
-        public void Suscribir(ObservadorMail observador)
+        public void Suscribir(IObservadorNotificacion observador)
         {
-            // Lógica para suscribir un observador
+            observadores.Add(observador);
         }
 
-        public void Notificar()
-        {
-            ObservadorMail observador = new ObservadorMail();
-            //metodo notificar que esta en el observador 
-            //metodo notificar que esta en la pantalla de los cors
-        }
+
 
     }
 }

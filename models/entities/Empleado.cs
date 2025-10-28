@@ -10,8 +10,6 @@ namespace PPAI_backend.models.entities
     {
         [Key]
         public string Mail { get; set; } = string.Empty;
-
-        
         public string Apellido { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;

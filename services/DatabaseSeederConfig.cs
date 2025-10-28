@@ -3,8 +3,7 @@ using System.ComponentModel;
 namespace PPAI_backend.services
 {
     /// <summary>
-    /// Configuración para la generación de datos aleatorios.
-    /// Puedes modificar estos valores según tus necesidades.
+
     /// </summary>
     public class DatabaseSeederConfig
     {
@@ -69,10 +68,12 @@ namespace PPAI_backend.services
         [Description("Empleados con emails reales para testing de notificaciones")]
         public List<(string Email, string Nombre, string Apellido, string RolNombre)> EmpleadosReales { get; set; } = new()
         {
-            ("tu.email.real@gmail.com", "Brenda", "Desarrolladora", "Responsable de Inspección"),
-            ("segundo.email@gmail.com", "Carlos", "Técnico Senior", "Tecnico de Reparaciones"),
-            ("tercer.email@outlook.com", "Ana", "Supervisora", "Tecnico de Reparaciones"),
-            // 📧 IMPORTANTE: Cambia estos emails por emails reales donde quieras recibir las notificaciones
+            ("brendatapa6@gmail.com", "Brenda", "Desarrolladora", "Responsable de Reparación"),
+            ("ramondelligonzalo5@gmail.com", "Gonzalo", "Técnico Senior", "Responsable de Reparación"),
+            ("mikaelaherrero26@gmail.com", "Mikaela", "Supervisor", "Responsable de Reparación"),
+            ("mikaelaherrero26@gmail.com", "Ana", "Técnico", "Responsable de Reparación"),
+            ("mikaelaherrero26@gmail.com", "Ana", "Técnico Junior", "Responsable de Reparación"),
+            ("braian@sumail.com", "Braian", "Técnico Junior", "Responsable de Detección"),
         };
 
         #endregion

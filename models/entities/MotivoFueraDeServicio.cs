@@ -16,10 +16,8 @@ namespace PPAI_backend.models.entities
         public required TipoMotivo TipoMotivo { get; set; }
         public string? Comentario { get; set; }
         
-        //TODO: cambiar esto luego por el motivo fuera de servicio.
         public MotivoFueraDeServicio ObtenerMotivoFueraServicio()
         {
-            var descripcion = TipoMotivo.Descripcion;
             return this;
         }
 

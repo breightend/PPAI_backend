@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
 });
 
 // Configurar SendGrid
-var sendGridApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") 
+var sendGridApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY")
     ?? builder.Configuration["SendGrid:ApiKey"];
 
 if (!string.IsNullOrEmpty(sendGridApiKey))
@@ -73,6 +73,17 @@ catch (Exception ex)
     throw;
 }
 
+// Ejecutar seeder si se pasa el argumento --seed
+if (args.Contains("--seed"))
+{
+    Console.WriteLine("🌱 Iniciando seeding de base de datos...");
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+    await seeder.SeedDatabaseAsync();
+    await seeder.MostrarEstadisticas();
+    return; // Terminar después del seeding
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -88,7 +99,7 @@ app.MapPost("/seed-database", async (DatabaseSeeder seeder) =>
     {
         await seeder.SeedDatabaseAsync();
         await seeder.MostrarEstadisticas();
-        
+
         return Results.Ok(new
         {
             success = true,
@@ -114,7 +125,7 @@ app.MapGet("/database-stats", async (DatabaseSeeder seeder) =>
     try
     {
         await seeder.MostrarEstadisticas();
-        
+
         return Results.Ok(new
         {
             success = true,

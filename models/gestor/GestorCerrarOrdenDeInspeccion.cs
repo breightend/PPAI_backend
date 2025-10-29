@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using PPAI_backend.datos.dtos;
-using PPAI_backend.services;
-using PPAI_backend.models.gestor;
-using PPAI_backend.models.monitores;
 using PPAI_backend.models.interfaces;
 using PPAI_backend.models.observador;
 
@@ -14,6 +11,7 @@ namespace PPAI_backend.models.entities
 {
     public class GestorCerrarOrdenDeInspeccion : IObservadorNotificacion
     {
+        private readonly ApplicationDbContext _context;
         private readonly IObservadorNotificacion _emailService;
 
         private Sesion actualSesion = new Sesion
@@ -21,19 +19,24 @@ namespace PPAI_backend.models.entities
             Usuario = new Usuario()
         };
         private List<MotivoFueraDeServicio> motivosSeleccionados = new();
+        private List<IObservadorNotificacion> observadores = new();
 
         private Empleado? empleado;
 
-        public GestorCerrarOrdenDeInspeccion(DataLoaderService dataLoader, IObservadorNotificacion emailService)
+        public GestorCerrarOrdenDeInspeccion(ApplicationDbContext context, IObservadorNotificacion emailService)
         {
-            _dataLoader = dataLoader;
+            _context = context;
             _emailService = emailService;
         }
 
 
-        public Empleado BuscarEmpleadoRI()
+        public async Task<Empleado> BuscarEmpleadoRIAsync()
         {
-            Sesion? sesionActiva = _dataLoader.Sesiones.FirstOrDefault(s => s.FechaHoraFin == default);
+            var sesionActiva = await _context.Sesiones
+                .Include(s => s.Usuario)
+                .ThenInclude(u => u.Empleado)
+                .ThenInclude(e => e.Rol)
+                .FirstOrDefaultAsync(s => s.FechaHoraFin == default);
 
             if (sesionActiva == null)
                 throw new Exception("No hay sesión activa");
@@ -41,12 +44,19 @@ namespace PPAI_backend.models.entities
             return sesionActiva.BuscarEmpleadoRI();
         }
 
-
-        public List<DatosOI> BuscarOrdenInspeccion(Empleado empleado)
+        public async Task<List<DatosOI>> BuscarOrdenInspeccionAsync(Empleado empleado)
         {
+            var ordenesDeInspeccion = await _context.OrdenesDeInspeccion
+                .Include(oi => oi.Empleado)
+                .Include(oi => oi.Estado)
+                .Include(oi => oi.EstacionSismologica)
+                .ThenInclude(es => es.Sismografo)
+                .Where(oi => oi.Empleado.Mail == empleado.Mail)
+                .ToListAsync();
+
             List<DatosOI> resultado = new List<DatosOI>();
 
-            foreach (var oi in _dataLoader.OrdenesDeInspeccion)
+            foreach (var oi in ordenesDeInspeccion)
             {
                 if (oi.EsDelEmpleado(empleado) && oi.EstaRealizada())
                 {
@@ -74,12 +84,20 @@ namespace PPAI_backend.models.entities
 
 
         private OrdenDeInspeccion? ordenSeleccionada;
-        public void TomarOrdenSeleccionada(int numeroOrden)
+
+        public async Task TomarOrdenSeleccionadaAsync(int numeroOrden)
         {
-            ordenSeleccionada = _dataLoader.OrdenesDeInspeccion.FirstOrDefault(oi => oi.getNumeroOrden() == numeroOrden);
+            ordenSeleccionada = await _context.OrdenesDeInspeccion
+                .Include(oi => oi.Empleado)
+                .Include(oi => oi.Estado)
+                .Include(oi => oi.EstacionSismologica)
+                .ThenInclude(es => es.Sismografo)
+                .Include(oi => oi.CambioEstado)
+                .ThenInclude(ce => ce.Estado)
+                .FirstOrDefaultAsync(oi => oi.NumeroOrden == numeroOrden);
 
             if (ordenSeleccionada == null)
-                throw new Exception($"No se encontró la orden número: {numeroOrden} en la lista mostrada anteriormente.");
+                throw new Exception($"No se encontró la orden número: {numeroOrden} en la base de datos.");
         }
 
         public void TomarObservacion(string observacion)
@@ -89,12 +107,16 @@ namespace PPAI_backend.models.entities
             ordenSeleccionada.ObservacionCierre = observacion;
 
         }
-        
-        public List<MotivoFueraDeServicio> BuscarMotivoFueraDeServicio()
+
+        public async Task<List<MotivoFueraDeServicio>> BuscarMotivoFueraDeServicioAsync()
         {
+            var motivos = await _context.MotivosFueraDeServicio
+                .Include(m => m.TipoMotivo)
+                .ToListAsync();
+
             List<MotivoFueraDeServicio> motivosFueraDeServicio = new List<MotivoFueraDeServicio>();
 
-            foreach (var motivo in _dataLoader.Motivos)
+            foreach (var motivo in motivos)
             {
                 var motivoFueraServicio = motivo.ObtenerMotivoFueraServicio();
                 motivosFueraDeServicio.Add(motivoFueraServicio);
@@ -124,55 +146,57 @@ namespace PPAI_backend.models.entities
             if (motivosSeleccionados == null)
                 throw new Exception("Debe seleccionar al menos un motivo.");
         }
-        public void BuscarEstadoCerrada()
+        public async Task BuscarEstadoCerradaAsync()
         {
-            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.esAmbitoOrden() && e.esEstadoCerrada());
+            var estadoCerrada = await _context.Estados
+                .FirstOrDefaultAsync(e => e.esAmbitoOrden() && e.esEstadoCerrada());
 
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenDeInspeccion'.");
         }
 
-        public string CerrarOrdenInspeccion()
+        public async Task<string> CerrarOrdenInspeccionAsync()
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para cerrar.");
 
-            var estadoCerrada = _dataLoader.Estados.FirstOrDefault(e => e.Ambito == "OrdenDeInspeccion" && e.Nombre == "Cerrada");
+            var estadoCerrada = await _context.Estados
+                .FirstOrDefaultAsync(e => e.Ambito == "OrdenDeInspeccion" && e.Nombre == "Cerrada");
+
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada'.");
 
             ordenSeleccionada.cerrar(estadoCerrada, motivosSeleccionados, DateTime.Now);
 
+            await _context.SaveChangesAsync();
+
             return $"Orden N° {ordenSeleccionada.NumeroOrden} cerrada correctamente.";
         }
-        public void BuscarEstadoFueraServicio(Sismografo sismografo)
+
+        public async Task BuscarEstadoFueraServicioAsync(Sismografo sismografo)
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay orden seleccionada.");
 
-            Estado? estadoFueraServicio = null;
-
-            foreach (var estado in _dataLoader.Estados)
-            {
-                if (estado.esAmbitoSismografo() && estado.estadoFueraServicio())
-                {
-                    estadoFueraServicio = estado;
-                    break;
-                }
-            }
+            var estadoFueraServicio = await _context.Estados
+                .FirstOrDefaultAsync(e => e.esAmbitoSismografo() && e.estadoFueraServicio());
 
             if (estadoFueraServicio == null)
                 throw new Exception("No se encontró el estado 'Fuera de servicio' con ámbito 'Sismógrafo'.");
 
             ordenSeleccionada.EstacionSismologica.ActualizarSismografo(sismografo, DateTime.Now,
                 estadoFueraServicio, motivosSeleccionados);
+
+            await _context.SaveChangesAsync();
         }
 
 
-        public void TomarMotivoFueraDeServicioYComentario(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
+        public async Task TomarMotivoFueraDeServicioYComentarioAsync(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
         {
             motivosSeleccionados.Clear();
-            var todosLosMotivos = _dataLoader.Motivos.ToList();
+            var todosLosMotivos = await _context.MotivosFueraDeServicio
+                .Include(m => m.TipoMotivo)
+                .ToListAsync();
 
             foreach (var dto in motivosDto)
             {
@@ -198,11 +222,16 @@ namespace PPAI_backend.models.entities
             return ordenSeleccionada;
         }
 
-        public List<string> ObtenerMailsResponsableReparacion()
+        public async Task<List<string>> ObtenerMailsResponsableReparacionAsync()
         {
+            var empleados = await _context.Empleados
+                .Include(e => e.Rol)
+                .Where(e => e.Rol != null)
+                .ToListAsync();
+
             List<string> mailsResponsableReparacion = new List<string>();
 
-            foreach (var emp in _dataLoader.Empleados)
+            foreach (var emp in empleados)
             {
                 if (emp.EsResponsableDeReparacion())
                 {
@@ -212,9 +241,9 @@ namespace PPAI_backend.models.entities
             return mailsResponsableReparacion;
         }
 
-        public async Task EnviarNotificacionPorMail()
+        public async Task EnviarNotificacionPorMailAsync()
         {
-            var mailsResponsables = ObtenerMailsResponsableReparacion();
+            var mailsResponsables = await ObtenerMailsResponsableReparacionAsync();
 
             if (ordenSeleccionada == null)
                 throw new Exception("No hay orden seleccionada para enviar notificación.");
@@ -239,15 +268,32 @@ namespace PPAI_backend.models.entities
                 $"Saludos cordiales,\n" +
                 $"Sistema de Gestión Sismológica";
 
-            InterfazMail interfazMail = new InterfazMail(_emailService);
-            await interfazMail.EnviarMails(mailsResponsables, asunto, mensaje);
+            await _emailService.NotificarCierreOrdenInspeccion(asunto, mensaje, mailsResponsables);
         }
+
+        // Implementación de la interfaz IObservadorNotificacion
+        public async Task NotificarCierreOrdenInspeccion(string mensaje, List<string> destinatarios)
+        {
+            await _emailService.NotificarCierreOrdenInspeccion(mensaje, destinatarios);
+        }
+
+        public async Task NotificarCierreOrdenInspeccion(string asunto, string mensaje, List<string> destinatarios)
+        {
+            await _emailService.NotificarCierreOrdenInspeccion(asunto, mensaje, destinatarios);
+        }
+
         public void Suscribir(IObservadorNotificacion observador)
         {
             observadores.Add(observador);
         }
 
-
-
+        // Métodos auxiliares para verificar el DTO faltante
+        public class DatosOI
+        {
+            public int Numero { get; set; }
+            public DateTime FechaFin { get; set; }
+            public string NombreEstacion { get; set; } = string.Empty;
+            public int IdSismografo { get; set; }
+        }
     }
 }

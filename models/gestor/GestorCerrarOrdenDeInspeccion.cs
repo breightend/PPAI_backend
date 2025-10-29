@@ -271,6 +271,20 @@ namespace PPAI_backend.models.entities
             await _emailService.NotificarCierreOrdenInspeccion(asunto, mensaje, mailsResponsables);
         }
 
+
+        public void Suscribir(IObservadorNotificacion observador)
+        {
+            observadores.Add(observador);
+        }
+
+        public void Notificar()
+        {
+            foreach (var observador in observadores)
+            {
+                observador.NotificarCierreOrdenInspeccion("La orden de inspección ha sido cerrada.", new List<string>());
+            }
+        }
+
         // Implementación de la interfaz IObservadorNotificacion
         public async Task NotificarCierreOrdenInspeccion(string mensaje, List<string> destinatarios)
         {
@@ -282,10 +296,7 @@ namespace PPAI_backend.models.entities
             await _emailService.NotificarCierreOrdenInspeccion(asunto, mensaje, destinatarios);
         }
 
-        public void Suscribir(IObservadorNotificacion observador)
-        {
-            observadores.Add(observador);
-        }
+
 
         // Métodos auxiliares para verificar el DTO faltante
         public class DatosOI

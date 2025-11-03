@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict fIOi76WT2yoeotlMBM4kczfKGj77QVHtCQXfhwYFU0Mlm5QKhEbJe5v8l8rxl5t
+\restrict fC7xXdJ3i2ax1OwQ9iuSSWpsyPBrL7IiSCT2DEVFCNzXXctIn4hPSqht9IiJKyC
 
 -- Dumped from database version 16.10
 -- Dumped by pg_dump version 16.10
@@ -752,5 +752,5 @@ ALTER TABLE ONLY public."Usuarios"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fIOi76WT2yoeotlMBM4kczfKGj77QVHtCQXfhwYFU0Mlm5QKhEbJe5v8l8rxl5t
+\unrestrict fC7xXdJ3i2ax1OwQ9iuSSWpsyPBrL7IiSCT2DEVFCNzXXctIn4hPSqht9IiJKyC
 

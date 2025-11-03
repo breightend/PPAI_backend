@@ -8,7 +8,7 @@ using SendGrid;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Configurar variables de entorno desde .env si existe
+
 DotNetEnv.Env.Load();
 
 builder.WebHost.UseUrls("http://localhost:5199");
@@ -42,10 +42,10 @@ else
     builder.Services.AddSingleton<ISendGridClient>(provider => new SendGridClient("mock-api-key"));
 }
 
-builder.Services.AddSingleton<JsonMappingService>();
-builder.Services.AddSingleton<DataLoaderService>();
+
 builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
 builder.Services.AddScoped<IObservadorNotificacion, EmailService>();
+builder.Services.AddScoped<IObservadorNotificacion, ObservadorPantallaCRSS>();
 builder.Services.AddScoped<DatabaseSeeder>();
 
 builder.Logging.ClearProviders();
@@ -73,7 +73,7 @@ catch (Exception ex)
     throw;
 }
 
-// Ejecutar seeder si se pasa el argumento --seed
+
 if (args.Contains("--seed"))
 {
     Console.WriteLine("🌱 Iniciando seeding de base de datos...");
@@ -81,7 +81,7 @@ if (args.Contains("--seed"))
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
     await seeder.SeedDatabaseAsync();
     await seeder.MostrarEstadisticas();
-    return; // Terminar después del seeding
+    return; 
 }
 
 if (app.Environment.IsDevelopment())
@@ -92,7 +92,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Endpoint para generar datos aleatorios
+//TODO: eliminar endpoint de seed en producción
 app.MapPost("/seed-database", async (DatabaseSeeder seeder) =>
 {
     try
@@ -144,23 +144,32 @@ app.MapGet("/database-stats", async (DatabaseSeeder seeder) =>
     }
 });
 
-app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapGet("/empleado-logueado", async (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
 
-        var empleado = gestor.BuscarEmpleadoRI();
+        var empleado = await gestor.BuscarEmpleadoRI();
+        if (empleado == null)
+        {
+            return Results.NotFound(new
+            {
+                success = false,
+                message = "Empleado no encontrado"
+            });
+        }
+
         return Results.Ok(new
         {
             success = true,
-            message = "Empleado obtenido navegando: Sesion -> Usuario -> Empleado",
+            message = "Empleado obtenido",
             data = new
             {
                 nombre = empleado.Nombre,
                 apellido = empleado.Apellido,
                 mail = empleado.Mail,
                 telefono = empleado.Telefono,
-                rol = empleado.Rol.Descripcion
+                rol = empleado.Rol?.Descripcion
             }
         });
     }
@@ -170,11 +179,21 @@ app.MapGet("/empleado-logueado", (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
-app.MapGet("/motivos", (GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapGet("/motivos", async (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        var motivos = gestor.BuscarMotivoFueraDeServicio();
+        var motivos = await gestor.BuscarMotivoFueraDeServicio();
+
+        if (motivos == null || motivos.Count == 0)
+        {
+            return Results.Ok(new
+            {
+                success = true,
+                message = "No se encontraron motivos fuera de servicio",
+                data = new List<object>()
+            });
+        }
 
         var motivosResponse = motivos.Select(m => new
         {

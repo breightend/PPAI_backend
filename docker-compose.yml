@@ -37,3 +37,4 @@ services:
       - ./pgadmin-pgpass:/pgpass:ro
       - ./postgres-data:/var/lib/postgresql/data
       - ./pgadmin-data/db/init:/docker-entrypoint-initdb.d
+      - docker compose up -d ./db/init:/docker-entrypoint-initdb.d

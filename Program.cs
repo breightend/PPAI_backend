@@ -64,16 +64,16 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
-
-try
-{
-    await ConfigurarRelacionesEntidades(app.Services);
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"❌ Error al cargar datos iniciales: {ex.Message}");
-    throw;
-}
+// Ya no se necesita ConfigurarRelacionesEntidades porque usamos DatabaseSeeder
+// try
+// {
+//     await ConfigurarRelacionesEntidades(app.Services);
+// }
+// catch (Exception ex)
+// {
+//     Console.WriteLine($"❌ Error al cargar datos iniciales: {ex.Message}");
+//     throw;
+// }
 
 
 if (args.Contains("--seed"))
@@ -225,13 +225,13 @@ app.MapGet("/motivos", async (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
-app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapGet("/ordenes-inspeccion", async (GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
 
-        var empleado = gestor.BuscarEmpleadoRI();
-        var ordenes = gestor.BuscarOrdenInspeccion(empleado);
+        var empleado = await gestor.BuscarEmpleadoRI();
+        var ordenes = await gestor.BuscarOrdenInspeccion(empleado);
 
         if (ordenes == null || ordenes.Count == 0)
         {
@@ -258,7 +258,7 @@ app.MapGet("/ordenes-inspeccion", (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
-app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO request, GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapPost("/motivos-seleccionados", async (MotivosSeleccionadosDTO request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
@@ -266,7 +266,7 @@ app.MapPost("/motivos-seleccionados", (MotivosSeleccionadosDTO request, GestorCe
         {
             Console.WriteLine($"ID: {motivo.IdMotivo}, Comentario: {motivo.Comentario}");
         }
-        gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
+        await gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
 
         return Results.Ok("Motivos recibidos correctamente.");
     }
@@ -304,11 +304,11 @@ app.MapPost("/confirmar-cierre", async (ConfirmarRequest request, GestorCerrarOr
 
 
 
-app.MapPost("/agregar-observacion", (ObservationRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapPost("/agregar-observacion", async (ObservationRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        gestor.TomarOrdenSeleccionada(request.OrderId);
+        await gestor.TomarOrdenSeleccionada(request.OrderId);
         gestor.TomarObservacion(request.Observation);
         return Results.Ok("Observación agregada correctamente.");
     }
@@ -318,17 +318,17 @@ app.MapPost("/agregar-observacion", (ObservationRequest request, GestorCerrarOrd
     }
 });
 
-app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        gestor.TomarOrdenSeleccionada(request.OrdenId);
+        await gestor.TomarOrdenSeleccionada(request.OrdenId);
         gestor.TomarObservacion(request.Observation);
-        gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
+        await gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
         gestor.ValidarObsYComentario();
-        gestor.BuscarEstadoCerrada();
+        await gestor.BuscarEstadoCerrada();
 
-        var resultado = gestor.CerrarOrdenInspeccion();
+        var resultado = await gestor.CerrarOrdenInspeccion();
         var orden = gestor.GetOrdenSeleccionada();
         if (orden == null)
             return Results.BadRequest("No se encontró la orden seleccionada.");
@@ -370,11 +370,11 @@ app.MapPost("/cerrar-orden", (CerrarOrdenRequest request, GestorCerrarOrdenDeIns
     }
 });
 
-app.MapPost("/buscar-estado-fuera-servicio", (BuscarEstadoFueraServicioRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapPost("/buscar-estado-fuera-servicio", async (BuscarEstadoFueraServicioRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try
     {
-        gestor.TomarOrdenSeleccionada(request.OrdenId);
+        await gestor.TomarOrdenSeleccionada(request.OrdenId);
 
         var sismografo = new Sismografo
         {
@@ -384,7 +384,7 @@ app.MapPost("/buscar-estado-fuera-servicio", (BuscarEstadoFueraServicioRequest r
             CambioEstado = new List<CambioEstado>()
         };
 
-        gestor.BuscarEstadoFueraServicio(sismografo);
+        await gestor.BuscarEstadoFueraServicio(sismografo);
 
         var orden = gestor.GetOrdenSeleccionada();
         if (orden == null)
@@ -429,47 +429,48 @@ app.MapPost("/buscar-estado-fuera-servicio", (BuscarEstadoFueraServicioRequest r
     }
 });
 
-async Task ConfigurarRelacionesEntidades(IServiceProvider services)
-{
-    using var scope = services.CreateScope();
-    var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoaderService>();
-
-    try
-    {
-        await dataLoader.LoadAllDataAsync("datos/datos.json");
-
-        foreach (var usuario in dataLoader.Usuarios)
-        {
-            if (usuario.Empleado == null)
-            {
-                Console.WriteLine($" Usuario {usuario.NombreUsuario} no tiene empleado asignado");
-            }
-        }
-
-        var usuarioRI = dataLoader.Usuarios.FirstOrDefault(u =>
-            u.Empleado?.Rol?.Descripcion == "Responsable de Inspección");
-
-        if (usuarioRI != null)
-        {
-            var sesionActiva = new Sesion
-            {
-                FechaHoraInicio = DateTime.Now.AddHours(-2),
-                FechaHoraFin = default,
-                Usuario = usuarioRI
-            };
-
-            dataLoader.Sesiones.Add(sesionActiva);
-        }
-
-        Console.WriteLine(" Relaciones entre entidades configuradas correctamente");
-        Console.WriteLine($"Sesión activa configurada para: {usuarioRI?.Empleado?.Nombre} {usuarioRI?.Empleado?.Apellido}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($" Error al configurar relaciones: {ex.Message}");
-        throw;
-    }
-}
+// FUNCIÓN COMENTADA - Ya no se usa porque ahora usamos DatabaseSeeder
+// async Task ConfigurarRelacionesEntidades(IServiceProvider services)
+// {
+//     using var scope = services.CreateScope();
+//     var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoaderService>();
+// 
+//     try
+//     {
+//         await dataLoader.LoadAllDataAsync("datos/datos.json");
+// 
+//         foreach (var usuario in dataLoader.Usuarios)
+//         {
+//             if (usuario.Empleado == null)
+//             {
+//                 Console.WriteLine($" Usuario {usuario.NombreUsuario} no tiene empleado asignado");
+//             }
+//         }
+// 
+//         var usuarioRI = dataLoader.Usuarios.FirstOrDefault(u =>
+//             u.Empleado?.Rol?.Descripcion == "Responsable de Inspección");
+// 
+//         if (usuarioRI != null)
+//         {
+//             var sesionActiva = new Sesion
+//             {
+//                 FechaHoraInicio = DateTime.Now.AddHours(-2),
+//                 FechaHoraFin = default,
+//                 Usuario = usuarioRI
+//             };
+// 
+//             dataLoader.Sesiones.Add(sesionActiva);
+//         }
+// 
+//         Console.WriteLine(" Relaciones entre entidades configuradas correctamente");
+//         Console.WriteLine($"Sesión activa configurada para: {usuarioRI?.Empleado?.Nombre} {usuarioRI?.Empleado?.Apellido}");
+//     }
+//     catch (Exception ex)
+//     {
+//         Console.WriteLine($" Error al configurar relaciones: {ex.Message}");
+//         throw;
+//     }
+// }
 
 
 app.Run();

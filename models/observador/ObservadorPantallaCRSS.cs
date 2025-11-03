@@ -1,16 +1,17 @@
 using PPAI_backend.models.entities;
 using PPAI_backend.models.interfaces;
-using PPAI_backend.models.monitores; // Asumo que aquí está PantallaCCRS
+using PPAI_backend.models.monitores;
+using PPAI_backend.datos.dtos;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Linq;
 
 namespace PPAI_backend.models.observador
 {
     public class ObservadorPantallaCRSS : IObservadorNotificacion
     {
-        // 1. ESTADO INTERNO (Campos privados, como en el ejemplo)
-        // Estos guardarán la información de la última actualización.
+        // Estado interno del observador
         private PantallaCCRS _pantalla;
         private int _identificadorSismografo;
         private string _nombreEstado;
@@ -23,7 +24,6 @@ namespace PPAI_backend.models.observador
         // Constructor
         public ObservadorPantallaCRSS()
         {
-            // Creamos UNA instancia de la pantalla que este observador va a gestionar.
             _pantalla = new PantallaCCRS();
             _motivos = new List<string>();
             _comentarios = new List<string>();
@@ -31,106 +31,169 @@ namespace PPAI_backend.models.observador
             _nombreEstado = string.Empty;
         }
 
-        // 2. IMPLEMENTACIÓN DE LA INTERFAZ (El método que el Gestor llamará)
-        public void Actualizar(OrdenDeInspeccion orden)
+        // Implementación de la interfaz IObservadorNotificacion
+        public void Actualizar(int identificadorSismografo, string nombreEstado, DateTime fecha, List<string> motivos, List<string> comentarios, List<string> destinatarios)
         {
-            // 3. EXTRAER DATOS de la orden (esto es lo que no hacías)
-            // Asumiré la estructura de tu orden. Ajusta si es necesario.
-            var sismografo = orden.EstacionSismologica?.Sismografo;
-            var cambioEstadoFS = sismografo?.CambioEstado
-                .Where(ce => ce.Estado.Nombre.ToLower() == "fuera de servicio")
-                .OrderByDescending(ce => ce.FechaHoraInicio)
-                .FirstOrDefault();
+            // Actualizar el estado interno usando los setters
+            SetIdentificadorSismografo(identificadorSismografo);
+            SetNombreEstado(nombreEstado);
+            SetFechaCambioEstado(fecha);
+            SetMotivos(motivos ?? new List<string>());
+            SetComentarios(comentarios ?? new List<string>());
+            SetDestinatarios(destinatarios ?? new List<string>());
+            SetFechaCierre(DateTime.Now);
 
-            // 4. USAR LOS "SETTERS" (¡Como en el ejemplo!)
-            // Llenamos los campos privados de esta clase.
-            SetIdentificadorSismografo(sismografo?.IdentificadorSismografo ?? 0);
-            SetNombreEstado(cambioEstadoFS?.Estado.Nombre ?? "Desconocido");
-            SetFechaCambioEstado(cambioEstadoFS?.FechaHoraInicio ?? DateTime.MinValue);
-            SetMotivos(cambioEstadoFS?.Motivos.Select(m => m.TipoMotivo.Descripcion).ToList() ?? new List<string>());
-            SetComentarios(cambioEstadoFS?.Motivos.Select(m => m.Comentario).ToList() ?? new List<string>());
-            SetDestinatarios(orden.EmailsResponsables ?? new List<string>()); // Asumo que esto existe en la orden
-            SetFechaCierre(DateTime.Now); // La fecha de "ahora"
+            // Generar el JSON con la información actualizada
+            var mensajeJson = GenerarJsonNotificacion();
 
-            // 5. GENERAR EL JSON
-            // Ahora creamos el JSON usando los campos privados (this._...)
+            // Actualizar la pantalla CCRS
+            ActualizarPantallaCCRS();
+
+            // Mostrar el JSON generado (en un escenario real se enviaría al frontend)
+            Console.WriteLine($"[PANTALLA CRSS] Notificación JSON generada:");
+            Console.WriteLine(mensajeJson);
+        }
+
+        // Método para generar el JSON de notificación
+        private string GenerarJsonNotificacion()
+        {
             var mensaje = new
             {
                 tipo = "cierre_orden_inspeccion",
-                timestamp = this._fechaCierre.ToString("yyyy-MM-dd HH:mm:ss"),
+                timestamp = _fechaCierre.ToString("yyyy-MM-dd HH:mm:ss"),
                 datos = new
                 {
                     sismografo = new
                     {
-                        identificador = this._identificadorSismografo,
-                        estado = this._nombreEstado,
-                        fechaCambioEstado = this._fechaCambioEstado.ToString("yyyy-MM-dd HH:mm:ss")
+                        identificador = _identificadorSismografo,
+                        estado = _nombreEstado,
+                        fechaCambioEstado = _fechaCambioEstado.ToString("yyyy-MM-dd HH:mm:ss")
                     },
                     cierre = new
                     {
-                        fechaCierre = this._fechaCierre.ToString("yyyy-MM-dd HH:mm:ss"),
-                        motivos = this._motivos,
-                        comentarios = this._comentarios,
-                        destinatarios = this._destinatarios
+                        fechaCierre = _fechaCierre.ToString("yyyy-MM-dd HH:mm:ss"),
+                        motivos = _motivos,
+                        comentarios = _comentarios,
+                        destinatarios = _destinatarios
                     },
-                    notificacion = new { /* ... */ }
+                    notificacion = new
+                    {
+                        mensaje = $"Sismógrafo #{_identificadorSismografo} cambió al estado: {_nombreEstado}",
+                        requiereAccion = _nombreEstado.ToLower().Contains("fuera"),
+                        prioridad = _nombreEstado.ToLower().Contains("fuera") ? "alta" : "normal"
+                    }
                 },
-                metadatos = new { /* ... */ }
+                metadatos = new
+                {
+                    origen = "Sistema de Gestión Sismológica",
+                    version = "1.0",
+                    generadoPor = "ObservadorPantallaCRSS"
+                }
             };
 
-            var options = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var mensajeJson = JsonSerializer.Serialize(mensaje, options);
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
 
-            Console.WriteLine($"[PANTALLA CRSS] JSON generado:");
-            Console.WriteLine(mensajeJson);
-
-            // 6. ACTUALIZAR EL MODELO DE PANTALLA
-            // (Esto es lo que hacía tu método estático, pero ahora en el objeto real)
-            this._pantalla.SetFecha(this._fechaCierre);
-            this._pantalla.SetMensaje($"Sismógrafo #{this._identificadorSismografo} cambió al estado: {this._nombreEstado}");
-
-            // 7. ENVIAR AL FRONTEND (El paso que falta)
-            // Aquí es donde deberías enviar el JSON al frontend.
-            // `Console.WriteLine` NO lo envía.
-            // Necesitarías un servicio (como SignalR) inyectado aquí para hacerlo.
-            // Ejemplo: _miServicioDeSignalR.EnviarMensaje(mensajeJson);
+            return JsonSerializer.Serialize(mensaje, options);
         }
 
-        // --- 8. MÉTODOS SET (Ahora sí son setters reales) ---
-        // Son 'private' porque solo esta clase necesita llamarlos.
+        // Método para actualizar la pantalla CCRS con los datos recibidos
+        private void ActualizarPantallaCCRS()
+        {
+            // Usar los métodos Set de la pantalla CCRS
+            _pantalla.SetMensaje($"Sismógrafo #{_identificadorSismografo} cambió al estado: {_nombreEstado}");
+            _pantalla.SetFecha(_fechaCierre);
+            _pantalla.SetMotivos(_motivos);
+            _pantalla.SetComentarios(_comentarios);
+            _pantalla.SetResponsablesReparacion(_destinatarios);
+
+            // Notificar a la pantalla
+            _pantalla.NotificarOrdenDeInspeccion($"Actualización de estado para sismógrafo #{_identificadorSismografo}");
+        }
+
+        // Métodos Set privados para actualizar el estado interno
         private void SetIdentificadorSismografo(int identificador)
         {
-            this._identificadorSismografo = identificador;
+            _identificadorSismografo = identificador;
         }
 
         private void SetNombreEstado(string nombre)
         {
-            this._nombreEstado = nombre ?? "";
+            _nombreEstado = nombre ?? string.Empty;
         }
 
         private void SetFechaCambioEstado(DateTime fecha)
         {
-            this._fechaCambioEstado = fecha;
+            _fechaCambioEstado = fecha;
         }
 
         private void SetMotivos(List<string> motivos)
         {
-            this._motivos = motivos ?? new List<string>();
+            _motivos = motivos ?? new List<string>();
         }
 
         private void SetComentarios(List<string> comentarios)
         {
-            this._comentarios = comentarios ?? new List<string>();
+            _comentarios = comentarios ?? new List<string>();
         }
 
         private void SetDestinatarios(List<string> destinatarios)
         {
-            this._destinatarios = destinatarios ?? new List<string>();
+            _destinatarios = destinatarios ?? new List<string>();
         }
 
         private void SetFechaCierre(DateTime fechaActual)
         {
-            this._fechaCierre = fechaActual;
+            _fechaCierre = fechaActual;
+        }
+
+        // Métodos Get para acceder al estado interno
+        public int GetIdentificadorSismografo() => _identificadorSismografo;
+        public string GetNombreEstado() => _nombreEstado;
+        public DateTime GetFechaCambioEstado() => _fechaCambioEstado;
+        public DateTime GetFechaCierre() => _fechaCierre;
+        public List<string> GetMotivos() => new List<string>(_motivos);
+        public List<string> GetComentarios() => new List<string>(_comentarios);
+        public List<string> GetDestinatarios() => new List<string>(_destinatarios);
+
+        // Método para obtener el DTO de la pantalla CCRS
+        public PantallaCCRSResponseDTO GetPantallaResponseDTO()
+        {
+            return _pantalla.GetResponseDTO();
+        }
+
+        // Método para obtener la instancia de la pantalla
+        public PantallaCCRS GetPantalla()
+        {
+            return _pantalla;
+        }
+
+        // Método para enviar notificación específica (opcional)
+        public void EnviarNotificacionEspecifica(string mensajePersonalizado)
+        {
+            _pantalla.SetMensaje(mensajePersonalizado);
+            _pantalla.SetFecha(DateTime.Now);
+
+            var notificacionEspecifica = new
+            {
+                tipo = "notificacion_especifica",
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                mensaje = mensajePersonalizado,
+                sismografo = _identificadorSismografo,
+                estado = _nombreEstado
+            };
+
+            var json = JsonSerializer.Serialize(notificacionEspecifica, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            Console.WriteLine($"[PANTALLA CRSS] Notificación específica:");
+            Console.WriteLine(json);
         }
     }
 }

@@ -277,11 +277,11 @@ namespace PPAI_backend.models.entities
             observadores.Add(observador);
         }
 
-        public void Notificar()
+        public async Task Notificar()
         {
             foreach (var observador in observadores)
             {
-                observador.NotificarCierreOrdenInspeccion("La orden de inspección ha sido cerrada.", new List<string>());
+                await observador.NotificarCierreOrdenInspeccion("La orden de inspección ha sido cerrada.", new List<string>());
             }
         }
 

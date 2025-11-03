@@ -24,7 +24,7 @@ namespace PPAI_backend.models.entities
         private List<string> _mailsResponsablesReparacion = new List<string>();
 
         private OrdenDeInspeccion? _ordenProcesada;
-        
+
         private string _nombreEstadoObtenido = string.Empty;
 
         private Empleado? empleado;

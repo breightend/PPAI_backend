@@ -1,14 +1,15 @@
 using System.ComponentModel;
+using Bogus;
 
 namespace PPAI_backend.services
 {
     /// <summary>
-
+    /// Configuración para el generador de datos aleatorios de la base de datos
     /// </summary>
     public class DatabaseSeederConfig
     {
         #region Configuración de Cantidad de Registros
-        
+
         [Description("Número de empleados a generar")]
         public int NumeroEmpleados { get; set; } = 20;
 
@@ -131,8 +132,8 @@ namespace PPAI_backend.services
         [Description("Ciudades argentinas para nombres de estaciones")]
         public List<string> CiudadesArgentinas { get; set; } = new()
         {
-            "Buenos Aires", "Córdoba", "Rosario", "Mendoza", "Tucumán", "La Plata", 
-            "Mar del Plata", "Salta", "San Juan", "Resistencia", "Neuquén", 
+            "Buenos Aires", "Córdoba", "Rosario", "Mendoza", "Tucumán", "La Plata",
+            "Mar del Plata", "Salta", "San Juan", "Resistencia", "Neuquén",
             "Santiago del Estero", "Corrientes", "Posadas", "Bahía Blanca",
             "Paraná", "Formosa", "San Luis", "Catamarca", "La Rioja",
             "Santa Rosa", "Rawson", "Viedma", "San Salvador de Jujuy", "Ushuaia"
@@ -162,12 +163,43 @@ namespace PPAI_backend.services
 
         #endregion
 
+        #region Constructor y Configuración de Semilla
+
+        /// <summary>
+        /// Constructor que configura la semilla para datos consistentes
+        /// </summary>
+        public DatabaseSeederConfig()
+        {
+            // ✅ IMPORTANTE: Seed fijo para que todos generen los mismos datos
+            // Esto asegura que todos los desarrolladores obtengan exactamente los mismos registros
+            Randomizer.Seed = new Random(12345);
+        }
+
+        #endregion
+
         #region Métodos de Utilidad
+
+        /// <summary>
+        /// Configuración estándar para compartir entre el equipo
+        /// </summary>
+        public static DatabaseSeederConfig TeamShared => new()
+        {
+            NumeroEmpleados = 20,
+            NumeroUsuarios = 10,
+            NumeroSismografos = 25,
+            NumeroEstaciones = 15,
+            NumeroOrdenes = 30,
+            NumeroSesiones = 10,
+            NumeroMotivos = 15,
+            LimpiarDatosExistentes = true, // Siempre empezar limpio
+            ContraseñaDefecto = "123456", // Password común para testing
+            IdiomaFaker = "es"
+        };
 
         /// <summary>
         /// Obtiene la configuración por defecto
         /// </summary>
-        public static DatabaseSeederConfig Default => new();
+        public static DatabaseSeederConfig Default => TeamShared;
 
         /// <summary>
         /// Configuración para testing (menos datos)

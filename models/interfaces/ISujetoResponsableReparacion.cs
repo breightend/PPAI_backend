@@ -9,7 +9,6 @@ namespace PPAI_backend.models.interfaces
     {
         public void Suscribir(IObservadorNotificacion observador);
         public void Desuscribir(IObservadorNotificacion observador);
-
         public void Notificar();
     }
 }

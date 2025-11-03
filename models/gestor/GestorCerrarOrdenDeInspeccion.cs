@@ -12,7 +12,7 @@ namespace PPAI_backend.models.entities
     public class GestorCerrarOrdenDeInspeccion : ISujetoResponsableReparacion
     {
         private readonly ApplicationDbContext _context;
-        private readonly IObservadorNotificacion _emailService;
+        private readonly IObservadorNotificacion? _emailService;
 
         private Sesion actualSesion = new Sesion
         {
@@ -21,7 +21,11 @@ namespace PPAI_backend.models.entities
         private List<MotivoFueraDeServicio> motivosSeleccionados = [];
         private List<IObservadorNotificacion> _observadores = new List<IObservadorNotificacion>();
 
-        private OrdenDeInspeccion _ordenProcesada;
+        private List<string> _mailsResponsablesReparacion = new List<string>();
+
+        private OrdenDeInspeccion? _ordenProcesada;
+        
+        private string _nombreEstadoObtenido = string.Empty;
 
         private Empleado? empleado;
 
@@ -188,6 +192,8 @@ namespace PPAI_backend.models.entities
             if (estadoFueraServicio == null)
                 throw new Exception("No se encontró el estado 'Fuera de servicio' con ámbito 'Sismógrafo'.");
 
+            _nombreEstadoObtenido = estadoFueraServicio.Nombre;
+
             ordenSeleccionada.EstacionSismologica.ActualizarSismografo(sismografo, DateTime.Now,
                 estadoFueraServicio, motivosSeleccionados);
 
@@ -233,16 +239,17 @@ namespace PPAI_backend.models.entities
                 .Where(e => e.Rol != null)
                 .ToListAsync();
 
-            List<string> mailsResponsableReparacion = new List<string>();
+            _mailsResponsablesReparacion.Clear(); // Limpiar la lista antes de agregar nuevos mails
 
             foreach (var emp in empleados)
             {
                 if (emp.EsResponsableDeReparacion())
                 {
-                    mailsResponsableReparacion.Add(emp.GetMail());
+                    _mailsResponsablesReparacion.Add(emp.GetMail());
                 }
             }
-            return mailsResponsableReparacion;
+
+            return _mailsResponsablesReparacion;
         }
 
 
@@ -258,20 +265,23 @@ namespace PPAI_backend.models.entities
 
         public void Notificar()
         {
+            if (_ordenProcesada == null)
+                throw new Exception("No hay orden procesada para notificar.");
+
             foreach (var obs in _observadores)
             {
-                obs.Actualizar(_ordenProcesada);
+                obs.Actualizar(
+                    _ordenProcesada.EstacionSismologica.Sismografo.IdentificadorSismografo,
+                    _nombreEstadoObtenido,
+                    DateTime.Now,
+                    motivosSeleccionados.Select(m => m.TipoMotivo.Descripcion).ToList(),
+                    motivosSeleccionados.Select(m => m.Comentario ?? "").ToList(),
+                    _mailsResponsablesReparacion
+                );
             }
         }
 
 
-        public async Task EnviarNotificacion(OrdenDeInspeccion ordenSeleccionada)
-        {
-            Console.WriteLine($"Cerrando la orden: {ordenSeleccionada.NumeroOrden}");
-
-            _ordenProcesada = ordenSeleccionada;
-            this.Notificar();
-        }
 
 
         // Métodos auxiliares para verificar el DTO faltante

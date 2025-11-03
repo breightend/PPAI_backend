@@ -8,7 +8,7 @@ namespace PPAI_backend.models.monitores
 {
     public class PantallaCCRS
     {
-        // Propiedades existentes
+        
         public string estadoActual { get; set; } = string.Empty;
         public DateTime? fechaUltimaActualizacion { get; set; }
         public DateTime? horaUltimaActualizacion { get; set; }

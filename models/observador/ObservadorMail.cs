@@ -3,30 +3,42 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using PPAI_backend.models.entities;
-using PPAI_backend.models.gestor;
 using PPAI_backend.models.interfaces;
+using PPAI_backend.services;
+using SendGrid.Helpers.Mail;
 
 namespace PPAI_backend.models.observador
 {
 
     public class ObservadorMail : IObservadorNotificacion
     {
-        private readonly InterfazMail _interfazMail;
-        public ObservadorMail(InterfazMail interfazMail)
+        private readonly EmailService _emailService;
+
+        public ObservadorMail(EmailService emailService)
         {
-            _interfazMail = interfazMail;
+            _emailService = emailService;
         }
-        public void Actualizar(OrdenDeInspeccion orden)
+
+
+        public void Actualizar(int identificadorSismografo, string nombreEstado, DateTime fecha, List<string> motivos, List<string> comentarios, List<string> destinatarios)
         {
-            //TODO: cambiar logica que envie a todos los mails correspondientes
-            var destinatarios = new List<string>
+            
+            var mensaje = $"El sismógrafo con ID {identificadorSismografo} ha cambiado al estado '{nombreEstado}' el {fecha:yyyy-MM-dd HH:mm:ss}.\n" +
+                         $"Motivos: {string.Join(", ", motivos)}\n" +
+                         $"Comentarios: {string.Join(", ", comentarios)}";
+
+            Task.Run(async () =>
             {
-                orden.Empleado.Mail
-            };
-
-            var mensaje = $"La orden de inspección número {orden.NumeroOrden} ha sido cerrada.";
-
-            _interfazMail.EnviarMails(destinatarios, mensaje).Wait();
+                try
+                {
+                    await _emailService.NotificarCierreOrdenInspeccionAsync(mensaje, destinatarios);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error al enviar notificación por email: {ex.Message}");
+                }
+            });
         }
+
     }
 }

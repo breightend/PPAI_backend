@@ -1,6 +1,7 @@
 using PPAI_backend.datos.dtos;
 using PPAI_backend.models.entities;
 using PPAI_backend.models.interfaces;
+using PPAI_backend.models.observador;
 using PPAI_backend.services;
 using Microsoft.EntityFrameworkCore;
 using SendGrid;
@@ -44,8 +45,9 @@ else
 
 
 builder.Services.AddScoped<GestorCerrarOrdenDeInspeccion>();
-builder.Services.AddScoped<IObservadorNotificacion, EmailService>();
-builder.Services.AddScoped<IObservadorNotificacion, ObservadorPantallaCRSS>();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<ObservadorMail>();
+builder.Services.AddScoped<ObservadorPantallaCRSS>();
 builder.Services.AddScoped<DatabaseSeeder>();
 
 builder.Logging.ClearProviders();

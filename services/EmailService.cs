@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace PPAI_backend.services
 {
-    public class EmailService : IObservadorNotificacion
+    public class EmailService
     {
         private readonly ISendGridClient _sendGridClient;
         private readonly IConfiguration _configuration;
@@ -23,7 +23,7 @@ namespace PPAI_backend.services
             _configuration = configuration;
             _logger = logger;
             
-            // Obtener configuración del email remitente desde appsettings o variables de entorno
+    
             _fromEmail = _configuration["SendGrid:FromEmail"] ?? "noreply@sismologia.com";
             _fromName = _configuration["SendGrid:FromName"] ?? "Sistema de Sismología";
         }

@@ -25,7 +25,7 @@ namespace PPAI_backend.controllers
             try
             {
                 var gestor = new GestorCerrarOrdenDeInspeccion(_context, _emailService);
-                var empleado = await gestor.BuscarEmpleadoRIAsync();
+                var empleado = await gestor.BuscarEmpleadoRI();
                 return Ok(empleado);
             }
             catch (Exception ex)
@@ -47,7 +47,7 @@ namespace PPAI_backend.controllers
                     return NotFound("Empleado no encontrado");
 
                 var gestor = new GestorCerrarOrdenDeInspeccion(_context, _emailService);
-                var ordenes = await gestor.BuscarOrdenInspeccionAsync(empleado);
+                var ordenes = await gestor.BuscarOrdenInspeccion(empleado);
                 var ordenesOrdenadas = gestor.OrdenarOrdenInspeccion(ordenes);
 
                 return Ok(ordenesOrdenadas);
@@ -64,7 +64,7 @@ namespace PPAI_backend.controllers
             try
             {
                 var gestor = new GestorCerrarOrdenDeInspeccion(_context, _emailService);
-                var motivos = await gestor.BuscarMotivoFueraDeServicioAsync();
+                var motivos = await gestor.BuscarMotivoFueraDeServicio();
                 return Ok(motivos);
             }
             catch (Exception ex)
@@ -81,22 +81,22 @@ namespace PPAI_backend.controllers
                 var gestor = new GestorCerrarOrdenDeInspeccion(_context, _emailService);
 
                 // Tomar la orden seleccionada
-                await gestor.TomarOrdenSeleccionadaAsync(request.NumeroOrden);
+                await gestor.TomarOrdenSeleccionada(request.NumeroOrden);
 
                 // Tomar observación
                 gestor.TomarObservacion(request.Observacion);
 
                 // Tomar motivos y comentarios
-                await gestor.TomarMotivoFueraDeServicioYComentarioAsync(request.Motivos);
+                await gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
 
                 // Validar
                 gestor.ValidarObsYComentario();
 
                 // Cerrar orden
-                var resultado = await gestor.CerrarOrdenInspeccionAsync();
+                var resultado = await gestor.CerrarOrdenInspeccion();
 
                 // Enviar notificación por mail
-                await gestor.EnviarNotificacionPorMailAsync();
+                await gestor.EnviarNotificacionPorMail();
 
                 return Ok(resultado);
             }
@@ -112,7 +112,7 @@ namespace PPAI_backend.controllers
             try
             {
                 var gestor = new GestorCerrarOrdenDeInspeccion(_context, _emailService);
-                var mails = await gestor.ObtenerMailsResponsableReparacionAsync();
+                var mails = await gestor.ObtenerMailsResponsableReparacion();
                 return Ok(mails);
             }
             catch (Exception ex)

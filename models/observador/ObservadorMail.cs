@@ -18,7 +18,7 @@ namespace PPAI_backend.models.observador
         }
         public void Actualizar(OrdenDeInspeccion orden)
         {
-            //TODO: cambiar lofica que envie a todos los mails correspondientes
+            //TODO: cambiar logica que envie a todos los mails correspondientes
             var destinatarios = new List<string>
             {
                 orden.Empleado.Mail

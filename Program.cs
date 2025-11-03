@@ -81,7 +81,7 @@ if (args.Contains("--seed"))
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
     await seeder.SeedDatabaseAsync();
     await seeder.MostrarEstadisticas();
-    return; 
+    return;
 }
 
 if (app.Environment.IsDevelopment())
@@ -143,6 +143,9 @@ app.MapGet("/database-stats", async (DatabaseSeeder seeder) =>
         });
     }
 });
+
+
+
 
 app.MapGet("/empleado-logueado", async (GestorCerrarOrdenDeInspeccion gestor) =>
 {

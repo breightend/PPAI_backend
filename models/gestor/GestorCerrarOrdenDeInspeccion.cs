@@ -25,10 +25,12 @@ namespace PPAI_backend.models.entities
 
         private Empleado? empleado;
 
-        public GestorCerrarOrdenDeInspeccion(ApplicationDbContext context, IObservadorNotificacion emailService)
+        public GestorCerrarOrdenDeInspeccion(
+                ApplicationDbContext context,
+                IEnumerable<IObservadorNotificacion> observadores)
         {
             _context = context;
-            _emailService = emailService;
+            _observadores = observadores.ToList();
         }
 
 

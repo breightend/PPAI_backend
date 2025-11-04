@@ -94,32 +94,35 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//TODO: eliminar endpoint de seed en producción
-app.MapPost("/seed-database", async (DatabaseSeeder seeder) =>
+// Endpoint de seed: solo exponer en entorno Development para evitar poblados accidentales en producción
+if (app.Environment.IsDevelopment())
 {
-    try
+    app.MapPost("/seed-database", async (DatabaseSeeder seeder) =>
     {
-        await seeder.SeedDatabaseAsync();
-        await seeder.MostrarEstadisticas();
+        try
+        {
+            await seeder.SeedDatabaseAsync();
+            await seeder.MostrarEstadisticas();
 
-        return Results.Ok(new
+            return Results.Ok(new
+            {
+                success = true,
+                message = "Base de datos poblada exitosamente con datos aleatorios",
+                timestamp = DateTime.Now
+            });
+        }
+        catch (Exception ex)
         {
-            success = true,
-            message = "Base de datos poblada exitosamente con datos aleatorios",
-            timestamp = DateTime.Now
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new
-        {
-            success = false,
-            message = "Error al poblar la base de datos",
-            error = ex.Message,
-            timestamp = DateTime.Now
-        });
-    }
-});
+            return Results.BadRequest(new
+            {
+                success = false,
+                message = "Error al poblar la base de datos",
+                error = ex.Message,
+                timestamp = DateTime.Now
+            });
+        }
+    });
+}
 
 // Endpoint para mostrar estadísticas de la base de datos
 app.MapGet("/database-stats", async (DatabaseSeeder seeder) =>

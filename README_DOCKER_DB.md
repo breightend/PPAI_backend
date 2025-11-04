@@ -41,15 +41,21 @@ Una vez que la base de datos esté healthy, ejecuta:
 dotnet ef database update
 ```
 
-El proyecto ya apunta a la cadena de conexión:
+Recomendación: evita guardar credenciales en `appsettings.json`. En su lugar, exporta la cadena de conexión usando la variable de entorno `ConnectionStrings__DefaultConnection` antes de ejecutar migrations o iniciar la app.
 
-```
-Host=localhost;Database=SismosDB;Username=postgres;Password=postgres
+Ejemplos:
+
+Bash (WSL / Git Bash / Linux):
+
+```bash
+export ConnectionStrings__DefaultConnection="Host=localhost;Database=SismosDB;Username=postgres;Password=$POSTGRES_PASSWORD"
+dotnet ef database update
+unset ConnectionStrings__DefaultConnection
 ```
 
-Si prefieres variables de entorno, puedes exportarlas antes de correr la app o migrations:
+PowerShell (Windows):
 
-```
+```powershell
 $env:ConnectionStrings__DefaultConnection = "Host=localhost;Database=SismosDB;Username=postgres;Password=$env:POSTGRES_PASSWORD"
 dotnet ef database update
 Remove-Item Env:\ConnectionStrings__DefaultConnection

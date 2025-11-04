@@ -9,8 +9,16 @@ namespace PPAI_backend.scripts
         {
             Console.WriteLine("🌱 Iniciando Database Seeder...");
 
+            // Read connection string from environment variable to avoid hardcoded secrets
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                Console.WriteLine("Environment variable 'ConnectionStrings__DefaultConnection' is not set. Aborting seeder.");
+                return;
+            }
+
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseNpgsql("Host=localhost;Database=SismosDB;Username=postgres;Password=postgres")
+                .UseNpgsql(connectionString)
                 .Options;
 
             using var context = new ApplicationDbContext(options);

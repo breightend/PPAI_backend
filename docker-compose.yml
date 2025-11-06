@@ -1,16 +1,31 @@
 name: sismos-stack
 
+networks:
+  sismos-network:
+    driver: bridge
+    enable_ipv6: false
+
 services:
   db:
     image: postgres:16-alpine
     container_name: sismos-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
+    networks:
+      - sismos-network
     environment:
       POSTGRES_DB: SismosDB
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      MAIL_INSPECTOR: besume03@gmai.com
+      MAIL_REPARADOR1: brendatapa6@gmail.com
+      MAIL_REPARADOR2: lucianonavarro44@gmail.com
+      DEFAULT_PASSWORD: inspeccion123
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d
@@ -24,6 +39,8 @@ services:
     image: dpage/pgadmin4:8.12
     container_name: sismos-pgadmin
     restart: unless-stopped
+    networks:
+      - sismos-network
     depends_on:
       db:
         condition: service_healthy

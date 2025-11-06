@@ -1,28 +1,37 @@
 BEGIN;
 
--- 1. ROLES (Basado en los actores del CU 37)
--- El RI es el actor principal 
--- El Responsable de Reparaciones es notificado [cite: 207, 542]
+-- 1. ROLES 
 INSERT INTO public."Roles" ("Nombre", "Descripcion")
 VALUES
     ('Responsable de Inspecciones', 'Empleado que cierra órdenes de inspección (CU 37)'),
     ('Responsable de Reparaciones', 'Empleado que recibe notificación de sismógrafo "Fuera de Servicio"')
 ON CONFLICT ("Nombre") DO NOTHING;
 
--- 2. EMPLEADOS (Los actores)
+-- 2. EMPLEADOS
+-- IMPORTANTE: Estos son correos de prueba para desarrollo local
+-- Para producción, modificar estos valores o usar variables de entorno
 INSERT INTO public."Empleados" ("Mail", "Apellido", "Nombre", "Telefono", "RolNombre")
 VALUES
-    ('inspector.jefe@sismos.com', 'Gómez', 'Juan', '351-111111', 'Responsable de Inspecciones'),
-    ('reparador.jefe@sismos.com', 'Díaz', 'Marcos', '351-222222', 'Responsable de Reparaciones')
-ON CONFLICT ("Mail") DO NOTHING;
+    ('besume03@gmai.com', 'Gómez', 'Juan', '351-111111', 'Responsable de Inspecciones'),
+    ('brendatapa6@gmail.com', 'Díaz', 'Marcos', '351-222222', 'Responsable de Reparaciones'),
+    ('lucianonavarro44@gmail.com', 'Navarro', 'Luciano', '351-333333', 'Responsable de Reparaciones')
+ON CONFLICT ("Mail") DO UPDATE 
+SET "Apellido" = EXCLUDED."Apellido",
+    "Nombre" = EXCLUDED."Nombre",
+    "Telefono" = EXCLUDED."Telefono",
+    "RolNombre" = EXCLUDED."RolNombre";
 
--- 3. USUARIO (Para que el RI pueda "loguearse" )
+-- 3. USUARIO
+-- IMPORTANTE: Esta es una contraseña de prueba para desarrollo local
+-- Para producción, usar un hash seguro y variables de entorno
 INSERT INTO public."Usuarios" ("NombreUsuario", "Contraseña", "EmpleadoMail")
 VALUES
-    ('jgomez', 'inspeccion123', 'inspector.jefe@sismos.com')
-ON CONFLICT ("NombreUsuario") DO NOTHING;
+    ('jgomez', 'inspeccion123', 'besume03@gmai.com')
+ON CONFLICT ("NombreUsuario") DO UPDATE 
+SET "Contraseña" = EXCLUDED."Contraseña",
+    "EmpleadoMail" = EXCLUDED."EmpleadoMail";
 
--- 4. ESTADOS (Todos los estados mencionados en el flujo del CU 37)
+-- 4. ESTADOS
 INSERT INTO public."Estados" ("Nombre", "Descripcion", "Ambito")
 VALUES
     ('Completamente Realizada', 'Pre-condición para CU 37 ', 'OrdenDeInspeccion'),
@@ -32,17 +41,14 @@ VALUES
     ('On-line', 'Estado para flujo alternativo A2 [cite: 211, 546]', 'Sismografo')
 ON CONFLICT ("Nombre") DO NOTHING;
 
--- 5. TIPOS DE MOTIVO (Para el Paso 7 del CU 37 )
--- (Basados en la Regla de Negocio 11 [cite: 82, 417])
+-- 5. TIPOS DE MOTIVO
 INSERT INTO public."TiposMotivo" ("Descripcion")
 VALUES
     ('Avería por vibración'),
     ('Desgaste de componente'),
     ('Fallo en el sistema de registro'),
     ('Vandalismo');
-    -- La PK ("Id") es autogenerada, no usamos ON CONFLICT aquí.
 
--- 6. SISMÓGRAFO Y ESTACIÓN (Las entidades a inspeccionar)
 INSERT INTO public."Sismografos" ("FechaAdquisicion", "NroSerie")
 VALUES ('2023-01-01T12:00:00Z', 1001)
 RETURNING "IdentificadorSismografo"; -- Este será el Sismógrafo ID 1 (o el siguiente)
@@ -55,7 +61,7 @@ RETURNING "CodigoEstacion"; -- Esta será la Estación ID 1 (o la siguiente)
 -- La creamos en estado "Completamente Realizada" y asignada al RI 'jgomez' 
 INSERT INTO public."OrdenesDeInspeccion" ("FechaHoraCierre", "FechaHoraFinalizacion", "FechaHoraInicio", "ObservacionCierre", "EmpleadoMail", "EstadoNombre", "EstacionSismologicaCodigoEstacion")
 VALUES
-    ('2025-11-03T18:00:00Z', '2025-11-03T17:00:00Z', '2025-11-03T09:00:00Z', '(Observación de finalización, pendiente de cierre)', 'inspector.jefe@sismos.com', 'Completamente Realizada', 1)
+    ('2025-11-03T18:00:00Z', '2025-11-03T17:00:00Z', '2025-11-03T09:00:00Z', '(Observación de finalización, pendiente de cierre)', 'besume03@gmai.com', 'Completamente Realizada', 1)
 RETURNING "NumeroOrden"; -- Esta será la Orden ID 1 (o la siguiente)
 
 -- 8. ESTADO INICIAL DEL SISMÓGRAFO (Pre-condición clave)

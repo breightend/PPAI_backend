@@ -432,6 +432,138 @@ app.MapPost("/buscar-estado-fuera-servicio", async (BuscarEstadoFueraServicioReq
     }
 });
 
+
+app.MapPost("/observadores/registrar-email", async (
+    string email,
+    GestorCerrarOrdenDeInspeccion gestor,
+    EmailService emailService) =>
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Results.BadRequest(new
+            {
+                success = false,
+                message = "El email es requerido"
+            });
+        }
+
+        var observador = new ObservadorMail(emailService);
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Observador de email registrado exitosamente",
+            email = email,
+            tipo = "Email"
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new
+        {
+            success = false,
+            message = "Error al registrar observador",
+            error = ex.Message
+        });
+    }
+});
+
+
+app.MapGet("/empleados/{mail}/notificaciones-pendientes", async (
+    string mail,
+    ApplicationDbContext context) =>
+{
+    try
+    {
+        var empleado = await context.Empleados
+            .FirstOrDefaultAsync(e => e.Mail == mail);
+
+        if (empleado == null)
+        {
+            return Results.NotFound(new
+            {
+                success = false,
+                message = "Empleado no encontrado"
+            });
+        }
+
+        var ordenesActivas = await context.OrdenesDeInspeccion
+            .Include(o => o.EstacionSismologica)
+            .ThenInclude(e => e.Sismografo)
+            .Include(o => o.Estado)
+            .Where(o => o.Empleado.Mail == mail && o.Estado.Nombre != "Cerrada")
+            .OrderByDescending(o => o.FechaHoraInicio)
+            .Select(o => new
+            {
+                numeroOrden = o.NumeroOrden,
+                estado = o.Estado.Nombre,
+                fechaInicio = o.FechaHoraInicio,
+                estacion = o.EstacionSismologica.Nombre,
+                sismografo = o.EstacionSismologica.Sismografo.IdentificadorSismografo
+            })
+            .ToListAsync();
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = $"Notificaciones pendientes para {empleado.Nombre} {empleado.Apellido}",
+            totalOrdenes = ordenesActivas.Count,
+            data = ordenesActivas
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new
+        {
+            success = false,
+            message = "Error al obtener notificaciones",
+            error = ex.Message
+        });
+    }
+});
+
+
+// Endpoint para enviar notificación manual a un grupo de empleados
+app.MapPost("/notificaciones/enviar", async (
+    string asunto,
+    string mensaje,
+    List<string> destinatarios,
+    EmailService emailService) =>
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(asunto) || string.IsNullOrWhiteSpace(mensaje))
+        {
+            return Results.BadRequest(new
+            {
+                success = false,
+                message = "Asunto y mensaje son requeridos"
+            });
+        }
+
+        await emailService.NotificarCierreOrdenInspeccionAsync(asunto, mensaje, destinatarios);
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Notificaciones enviadas exitosamente",
+            destinatariosCount = destinatarios.Count,
+            timestamp = DateTime.Now
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new
+        {
+            success = false,
+            message = "Error al enviar notificaciones",
+            error = ex.Message
+        });
+    }
+});
+
 // FUNCIÓN COMENTADA - Ya no se usa porque ahora usamos DatabaseSeeder
 // async Task ConfigurarRelacionesEntidades(IServiceProvider services)
 // {

@@ -253,7 +253,6 @@ namespace PPAI_backend.models.entities
             return _mailsResponsablesReparacion;
         }
 
-
         public void Suscribir(IObservadorNotificacion observador)
         {
             _observadores.Add(observador);

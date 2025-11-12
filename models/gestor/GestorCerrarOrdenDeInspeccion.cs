@@ -240,7 +240,7 @@ namespace PPAI_backend.models.entities
                 .Where(e => e.Rol != null)
                 .ToListAsync();
 
-            _mailsResponsablesReparacion.Clear(); // Limpiar la lista antes de agregar nuevos mails
+            _mailsResponsablesReparacion.Clear(); 
 
             foreach (var emp in empleados)
             {
@@ -283,18 +283,28 @@ namespace PPAI_backend.models.entities
 
         public async Task EnviarNotificacionPorMail()
         {
-            // Notificar a los observadores en lugar de enviar email directo
             if (_ordenProcesada != null)
             {
-                await ObtenerMailsResponsableReparacion(); // Cargar los mails
-                Notificar(); // Notificar a los observadores
+                await ObtenerMailsResponsableReparacion(); 
+                Notificar(); 
             }
         }
 
 
 
 
-        // Métodos auxiliares para verificar el DTO faltante
+
+
+
+
+
+
+
+
+
+
+
+
         public class DatosOI
         {
             public int Numero { get; set; }

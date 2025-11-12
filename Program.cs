@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-// Configurar SendGrid
+
 var sendGridApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY")
     ?? builder.Configuration["SendGrid:ApiKey"];
 
@@ -39,7 +39,6 @@ if (!string.IsNullOrEmpty(sendGridApiKey))
 }
 else
 {
-    // Si no hay API key, crear un cliente mock o por defecto
     builder.Services.AddSingleton<ISendGridClient>(provider => new SendGridClient("mock-api-key"));
 }
 
@@ -64,21 +63,10 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
-// Ya no se necesita ConfigurarRelacionesEntidades porque usamos DatabaseSeeder
-// try
-// {
-//     await ConfigurarRelacionesEntidades(app.Services);
-// }
-// catch (Exception ex)
-// {
-//     Console.WriteLine($"❌ Error al cargar datos iniciales: {ex.Message}");
-//     throw;
-// }
-
 
 if (args.Contains("--seed"))
 {
-    Console.WriteLine("🌱 Iniciando seeding de base de datos...");
+    Console.WriteLine("Iniciando seeding de base de datos...");
     using var scope = app.Services.CreateScope();
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
     await seeder.SeedDatabaseAsync();
@@ -94,7 +82,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Endpoint de seed: solo exponer en entorno Development para evitar poblados accidentales en producción
 if (app.Environment.IsDevelopment())
 {
     app.MapPost("/seed-database", async (DatabaseSeeder seeder) =>
@@ -124,7 +111,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Endpoint para mostrar estadísticas de la base de datos
 app.MapGet("/database-stats", async (DatabaseSeeder seeder) =>
 {
     try
@@ -353,6 +339,10 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
             },
             comentario = m.Comentario
         }).ToList();
+        var nombreEstado = await gestor.BuscarEstadoFueraServicio(sismografo);
+        var obtenerResponsablesReparacion = await gestor.ObtenerResponsablesReparacion();
+        await gestor.EnviarNotificacionPorMail();
+
 
         return Results.Ok(new
         {
@@ -373,6 +363,11 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
     }
 });
 
+
+
+
+
+//Proximamente se va a borrar esta parte
 app.MapPost("/buscar-estado-fuera-servicio", async (BuscarEstadoFueraServicioRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
 {
     try

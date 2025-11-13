@@ -201,7 +201,7 @@ namespace PPAI_backend.models.entities
 
             _nombreEstadoObtenido = estadoFueraServicio.Nombre;
 
-            ordenSeleccionada.EstacionSismologica.ActualizarSismografo(sismografo, DateTime.Now,
+            ordenSeleccionada.EstacionSismologica.ActualizarSismografo(sismografo, DateTime.UtcNow,
                 estadoFueraServicio, motivosSeleccionados);
 
             await _context.SaveChangesAsync();

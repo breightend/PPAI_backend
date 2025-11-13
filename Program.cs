@@ -350,8 +350,8 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
             },
             comentario = m.Comentario
         }).ToList();
-        var nombreEstado = await gestor.BuscarEstadoFueraServicio(sismografo);
-        var obtenerResponsablesReparacion = await gestor.ObtenerResponsablesReparacion();
+        await gestor.BuscarEstadoFueraServicio(sismografo);
+        var responsables = await gestor.ObtenerMailsResponsableReparacion();
         await gestor.EnviarNotificacionPorMail();
 
 

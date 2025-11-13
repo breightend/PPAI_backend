@@ -59,7 +59,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers();
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
@@ -307,13 +307,24 @@ app.MapPost("/agregar-observacion", async (ObservationRequest request, GestorCer
     }
 });
 
-app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrdenDeInspeccion gestor, ObservadorMail obsMail, ObservadorPantallaCRSS obsPantalla) =>
 {
     try
     {
         await gestor.TomarOrdenSeleccionada(request.OrdenId);
         gestor.TomarObservacion(request.Observation);
         await gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
+        gestor.ValidarObsYComentario();
+        await gestor.BuscarEstadoCerrada();
+        
+        if (request.EnviarMail) {
+            gestor.Suscribir(obsMail);
+        }
+
+        if (request.EnviarMonitores) {
+            gestor.Suscribir(obsPantalla);
+        }
+
         gestor.ValidarObsYComentario();
         await gestor.BuscarEstadoCerrada();
 
@@ -359,7 +370,13 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
     }
     catch (Exception ex)
     {
-        return Results.BadRequest($"Error al cerrar orden: {ex.Message}");
+        // ESTO ES NUEVO: Busca el error interno si existe
+        var mensajeReal = ex.InnerException != null 
+            ? $"{ex.Message} -> DETALLES: {ex.InnerException.Message}" 
+            : ex.Message;
+
+        Console.WriteLine($"🔥 ERROR CRÍTICO EN BD: {mensajeReal}"); // Para verlo en la terminal
+        return Results.BadRequest($"Error al cerrar orden: {mensajeReal}");
     }
 });
 
@@ -428,136 +445,8 @@ app.MapPost("/buscar-estado-fuera-servicio", async (BuscarEstadoFueraServicioReq
 });
 
 
-app.MapPost("/observadores/registrar-email", async (
-    string email,
-    GestorCerrarOrdenDeInspeccion gestor,
-    EmailService emailService) =>
-{
-    try
-    {
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            return Results.BadRequest(new
-            {
-                success = false,
-                message = "El email es requerido"
-            });
-        }
+app.Run();
 
-        var observador = new ObservadorMail(emailService);
-
-        return Results.Ok(new
-        {
-            success = true,
-            message = "Observador de email registrado exitosamente",
-            email = email,
-            tipo = "Email"
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new
-        {
-            success = false,
-            message = "Error al registrar observador",
-            error = ex.Message
-        });
-    }
-});
-
-
-app.MapGet("/empleados/{mail}/notificaciones-pendientes", async (
-    string mail,
-    ApplicationDbContext context) =>
-{
-    try
-    {
-        var empleado = await context.Empleados
-            .FirstOrDefaultAsync(e => e.Mail == mail);
-
-        if (empleado == null)
-        {
-            return Results.NotFound(new
-            {
-                success = false,
-                message = "Empleado no encontrado"
-            });
-        }
-
-        var ordenesActivas = await context.OrdenesDeInspeccion
-            .Include(o => o.EstacionSismologica)
-            .ThenInclude(e => e.Sismografo)
-            .Include(o => o.Estado)
-            .Where(o => o.Empleado.Mail == mail && o.Estado.Nombre != "Cerrada")
-            .OrderByDescending(o => o.FechaHoraInicio)
-            .Select(o => new
-            {
-                numeroOrden = o.NumeroOrden,
-                estado = o.Estado.Nombre,
-                fechaInicio = o.FechaHoraInicio,
-                estacion = o.EstacionSismologica.Nombre,
-                sismografo = o.EstacionSismologica.Sismografo.IdentificadorSismografo
-            })
-            .ToListAsync();
-
-        return Results.Ok(new
-        {
-            success = true,
-            message = $"Notificaciones pendientes para {empleado.Nombre} {empleado.Apellido}",
-            totalOrdenes = ordenesActivas.Count,
-            data = ordenesActivas
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new
-        {
-            success = false,
-            message = "Error al obtener notificaciones",
-            error = ex.Message
-        });
-    }
-});
-
-
-// Endpoint para enviar notificación manual a un grupo de empleados
-app.MapPost("/notificaciones/enviar", async (
-    string asunto,
-    string mensaje,
-    List<string> destinatarios,
-    EmailService emailService) =>
-{
-    try
-    {
-        if (string.IsNullOrWhiteSpace(asunto) || string.IsNullOrWhiteSpace(mensaje))
-        {
-            return Results.BadRequest(new
-            {
-                success = false,
-                message = "Asunto y mensaje son requeridos"
-            });
-        }
-
-        await emailService.NotificarCierreOrdenInspeccionAsync(asunto, mensaje, destinatarios);
-
-        return Results.Ok(new
-        {
-            success = true,
-            message = "Notificaciones enviadas exitosamente",
-            destinatariosCount = destinatarios.Count,
-            timestamp = DateTime.Now
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new
-        {
-            success = false,
-            message = "Error al enviar notificaciones",
-            error = ex.Message
-        });
-    }
-});
 
 // FUNCIÓN COMENTADA - Ya no se usa porque ahora usamos DatabaseSeeder
 // async Task ConfigurarRelacionesEntidades(IServiceProvider services)

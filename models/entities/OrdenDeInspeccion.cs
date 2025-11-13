@@ -13,8 +13,8 @@ namespace PPAI_backend.models.entities
 
 
         // Atributos:
-        public DateTime FechaHoraCierre { get; set; }
-        public DateTime FechaHoraFinalizacion { get; set; }
+        public DateTime? FechaHoraCierre { get; set; }
+        public DateTime? FechaHoraFinalizacion { get; set; }
         public DateTime FechaHoraInicio { get; set; }
         public required string ObservacionCierre { get; set; }
         public required Empleado Empleado { get; set; }
@@ -28,16 +28,17 @@ namespace PPAI_backend.models.entities
 
 
         // Metodos:
-        public DateTime getFechaFin() { return FechaHoraFinalizacion; }
+        public DateTime? getFechaFin() { return FechaHoraFinalizacion; }
 
         public int getNumeroOrden() { return NumeroOrden; }
         public string getObservacionCierre() { return ObservacionCierre; }
 
-        public Boolean EsDelEmpleado(Empleado empleadoLogueado)
+        public bool EsDelEmpleado(Empleado empleadoLogueado)
         {
-            return ReferenceEquals(Empleado, empleadoLogueado);
+            if (Empleado == null || empleadoLogueado == null) return false;
+            return Empleado.Mail == empleadoLogueado.Mail;
         }
-        public DateTime getFechaHoraCierre() { return FechaHoraCierre; }
+        public DateTime? getFechaHoraCierre() { return FechaHoraCierre; }
         public bool EstaRealizada()
         {
             return Estado.esFinalizada() == true;
@@ -48,15 +49,18 @@ namespace PPAI_backend.models.entities
             return EstacionSismologica.getNombreEIdentificador();
         }
 
-        public void cerrar(Estado estadoCerrada, List<MotivoFueraDeServicio> motivosSeleccionados, DateTime horaActual)
+        public void cerrar(Estado estadoCerrada, List<MotivoFueraDeServicio> motivosSeleccionados, DateTime horaActual, string observacion)
         {
-            var estadoActual = CambioEstado.FirstOrDefault(ce => ce.esEstadoActual());
-
-            if (estadoActual != null)
+            var estadoActualHistorial = CambioEstado.OrderByDescending(ce => ce.FechaHoraInicio).FirstOrDefault();
+            if (estadoActualHistorial != null)
             {
-                estadoActual.setFechaHoraFin(horaActual);
+                estadoActualHistorial.setFechaHoraFin(horaActual);
             }
             CrearCambioEnLaOrdenDeInspeccion(estadoCerrada, horaActual, motivosSeleccionados);
+
+            this.Estado = estadoCerrada;
+            this.FechaHoraCierre = horaActual;
+            this.ObservacionCierre = observacion;
         }
 
         public void CrearCambioEnLaOrdenDeInspeccion(Estado estado, DateTime horaActual, List<MotivoFueraDeServicio> motivosSeleccionados)

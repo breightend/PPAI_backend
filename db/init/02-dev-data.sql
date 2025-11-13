@@ -1,74 +1,93 @@
 BEGIN;
 
--- 1. ROLES 
+-- 1. ROLES
 INSERT INTO public."Roles" ("Nombre", "Descripcion")
 VALUES
-    ('Responsable de Inspecciones', 'Empleado que cierra órdenes de inspección (CU 37)'),
-    ('Responsable de Reparaciones', 'Empleado que recibe notificación de sismógrafo "Fuera de Servicio"')
+    ('Responsable de Inspecciones', 'Cierra órdenes'),
+    ('Tecnico de Reparaciones', 'Recibe notificaciones'), -- Coincide con Rol.cs
+    ('Administrador', 'Admin')
 ON CONFLICT ("Nombre") DO NOTHING;
 
 -- 2. EMPLEADOS
--- IMPORTANTE: Estos son correos de prueba para desarrollo local
--- Para producción, modificar estos valores o usar variables de entorno
 INSERT INTO public."Empleados" ("Mail", "Apellido", "Nombre", "Telefono", "RolNombre")
 VALUES
-    ('besume03@gmai.com', 'Gómez', 'Juan', '351-111111', 'Responsable de Inspecciones'),
-    ('brendatapa6@gmail.com', 'Díaz', 'Marcos', '351-222222', 'Responsable de Reparaciones'),
-    ('lucianonavarro44@gmail.com', 'Navarro', 'Luciano', '351-333333', 'Responsable de Reparaciones')
-ON CONFLICT ("Mail") DO UPDATE 
-SET "Apellido" = EXCLUDED."Apellido",
-    "Nombre" = EXCLUDED."Nombre",
-    "Telefono" = EXCLUDED."Telefono",
-    "RolNombre" = EXCLUDED."RolNombre";
+    ('besume03@gmail.com', 'Gómez', 'Juan', '351-111111', 'Responsable de Inspecciones'),
+    ('brendatapa6@gmail.com', 'Díaz', 'Marcos', '351-222222', 'Tecnico de Reparaciones'),
+    ('lucianonavarro44@gmail.com', 'Navarro', 'Luciano', '351-333333', 'Tecnico de Reparaciones')
+ON CONFLICT ("Mail") DO NOTHING;
 
--- 3. USUARIO
--- IMPORTANTE: Esta es una contraseña de prueba para desarrollo local
--- Para producción, usar un hash seguro y variables de entorno
+-- 3. USUARIOS
 INSERT INTO public."Usuarios" ("NombreUsuario", "Contraseña", "EmpleadoMail")
 VALUES
-    ('jgomez', 'inspeccion123', 'besume03@gmai.com')
-ON CONFLICT ("NombreUsuario") DO UPDATE 
-SET "Contraseña" = EXCLUDED."Contraseña",
-    "EmpleadoMail" = EXCLUDED."EmpleadoMail";
+    ('jgomez', 'inspeccion123', 'besume03@gmail.com'),
+    ('m_diaz', '1234', 'brendatapa6@gmail.com'),
+    ('l_navarro', '1234', 'lucianonavarro44@gmail.com')
+ON CONFLICT ("NombreUsuario") DO NOTHING;
 
 -- 4. ESTADOS
 INSERT INTO public."Estados" ("Nombre", "Descripcion", "Ambito")
 VALUES
-    ('Completamente Realizada', 'Pre-condición para CU 37 ', 'OrdenDeInspeccion'),
-    ('Cerrada', 'Post-condición para CU 37 [cite: 205, 540]', 'OrdenDeInspeccion'),
-    ('Inhabilitado por Inspección', 'Estado inicial del sismógrafo ', 'Sismografo'),
-    ('Fuera de Servicio', 'Post-condición del sismógrafo ', 'Sismografo'),
-    ('On-line', 'Estado para flujo alternativo A2 [cite: 211, 546]', 'Sismografo')
+    ('Finalizada', 'Lista para cierre', 'OrdenDeInspeccion'), -- Coincide con Estado.cs
+    ('En Ejecucion', 'En proceso', 'OrdenDeInspeccion'),
+    ('Cerrada', 'Cerrada', 'OrdenDeInspeccion'),
+    ('Disponible', 'Listo', 'Sismografo'),
+    ('EnLinea', 'Operativo', 'Sismografo'),
+    ('InhabilitadoPorInspeccion', 'Detenido', 'Sismografo'),
+    ('Fuera de Servicio', 'Roto', 'Sismografo'), -- Coincide con Estado.cs
+    ('EnReparacion', 'Taller', 'Sismografo'),
+    ('DeBaja', 'Eliminado', 'Sismografo')
 ON CONFLICT ("Nombre") DO NOTHING;
 
 -- 5. TIPOS DE MOTIVO
-INSERT INTO public."TiposMotivo" ("Descripcion")
+INSERT INTO public."TiposMotivo" ("Id", "Descripcion")
+VALUES 
+    (1, 'Avería por vibración'), 
+    (2, 'Desgaste de componente'), 
+    (3, 'Fallo en el sistema de registro'), 
+    (4, 'Vandalismo'), 
+    (5, 'Falla en fuente de alimentación')
+ON CONFLICT ("Id") DO NOTHING;
+
+-- 5.1 MOTIVOS (Catálogo necesario para que no falle el ID al cerrar)
+INSERT INTO public."MotivosFueraDeServicio" ("Descripcion", "Comentario", "TipoMotivoId", "CambioEstadoId")
 VALUES
-    ('Avería por vibración'),
-    ('Desgaste de componente'),
-    ('Fallo en el sistema de registro'),
-    ('Vandalismo');
+    ('Falla por vibración excesiva', 'Detectado por sensores internos', 1, NULL),
+    ('Desgaste natural', 'Requiere cambio de pieza', 2, NULL),
+    ('Error de escritura en disco', 'Fallo de I/O', 3, NULL),
+    ('Pantalla rota o carcasa dañada', 'Vandalismo externo', 4, NULL),
+    ('Batería agotada o cable cortado', 'Sin energía', 5, NULL);
 
-INSERT INTO public."Sismografos" ("FechaAdquisicion", "NroSerie")
-VALUES ('2023-01-01T12:00:00Z', 1001)
-RETURNING "IdentificadorSismografo"; -- Este será el Sismógrafo ID 1 (o el siguiente)
+-- 6. SISMOGRAFOS
+INSERT INTO public."Sismografos" ("IdentificadorSismografo", "FechaAdquisicion", "NroSerie")
+VALUES 
+    (10, '2023-01-15 00:00:00', 998811),
+    (11, '2023-02-20 00:00:00', 998822),
+    (12, '2023-03-10 00:00:00', 998833),
+    (13, '2023-05-05 00:00:00', 998844);
 
-INSERT INTO public."EstacionesSismologicas" ("DocumentoCertificacionAdq", "FechaSolicitudCertificacion", "Latitud", "Nombre", "NroCertificacionAdquirida", "SismografoIdentificadorSismografo", "EstadoNombre")
-VALUES (true, '2023-01-01T00:00:00Z', -31.4201, 'Estación Observatorio', 500, 1, 'On-line')
-RETURNING "CodigoEstacion"; -- Esta será la Estación ID 1 (o la siguiente)
+-- 7. ESTACIONES SISMOLOGICAS
+INSERT INTO public."EstacionesSismologicas" ("CodigoEstacion", "Nombre", "Latitud", "EstadoNombre", "SismografoIdentificadorSismografo", "EmpleadoMail", "DocumentoCertificacionAdq", "FechaSolicitudCertificacion", "NroCertificacionAdquirida")
+VALUES 
+    (101, 'Estación Cerro Colorado', -30.1234, 'InhabilitadoPorInspeccion', 10, 'besume03@gmail.com', true, '2022-01-01 00:00:00', 1001),
+    (102, 'Estación Altas Cumbres', -31.5678, 'EnLinea', 11, 'lucianonavarro44@gmail.com', true, '2022-02-01 00:00:00', 1002),
+    (105, 'Estación La Falda', -31.1000, 'Fuera de Servicio', 12, 'brendatapa6@gmail.com', true, '2022-03-01 00:00:00', 1003),
+    (108, 'Estación Villa María', -32.4000, 'EnLinea', 13, 'brendatapa6@gmail.com', true, '2022-04-01 00:00:00', 1004);
 
--- 7. ORDEN DE INSPECCIÓN (La entidad principal del CU 37)
--- La creamos en estado "Completamente Realizada" y asignada al RI 'jgomez' 
-INSERT INTO public."OrdenesDeInspeccion" ("FechaHoraCierre", "FechaHoraFinalizacion", "FechaHoraInicio", "ObservacionCierre", "EmpleadoMail", "EstadoNombre", "EstacionSismologicaCodigoEstacion")
-VALUES
-    ('2025-11-03T18:00:00Z', '2025-11-03T17:00:00Z', '2025-11-03T09:00:00Z', '(Observación de finalización, pendiente de cierre)', 'besume03@gmai.com', 'Completamente Realizada', 1)
-RETURNING "NumeroOrden"; -- Esta será la Orden ID 1 (o la siguiente)
+-- 8. ORDENES DE INSPECCION
+INSERT INTO public."OrdenesDeInspeccion" ("NumeroOrden", "FechaHoraCierre", "FechaHoraFinalizacion", "FechaHoraInicio", "ObservacionCierre", "EmpleadoMail", "EstadoNombre", "EstacionSismologicaCodigoEstacion")
+VALUES 
+    -- CASO CLAVE: Estado 'Finalizada' para que el filtro C# funcione
+    (3422, '0001-01-01 00:00:00', '2025-11-11 15:30:00', '2025-11-11 08:00:00', '', 'besume03@gmail.com', 'Finalizada', 101),
+    (3423, '0001-01-01 00:00:00', '2025-11-12 12:00:00', '2025-11-12 09:00:00', '', 'lucianonavarro44@gmail.com', 'Finalizada', 102),
+    (3420, '2025-10-20 10:00:00', '2025-10-19 18:00:00', '2025-10-19 07:00:00', 'Cambio de batería exitoso.', 'besume03@gmail.com', 'Cerrada', 101);
 
--- 8. ESTADO INICIAL DEL SISMÓGRAFO (Pre-condición clave)
--- El sismógrafo (ID 1) debe estar "Inhabilitado por Inspección" 
--- para que el CU 37 pueda pasarlo a "Fuera de Servicio".
+-- 9. CAMBIOS ESTADO INICIALES
 INSERT INTO public."CambiosEstado" ("EstadoNombre", "FechaHoraInicio", "SismografoIdentificadorSismografo")
-VALUES
-    ('Inhabilitado por Inspección', '2025-11-03T09:00:01Z', 1);
+VALUES ('InhabilitadoPorInspeccion', '2025-11-11 08:00:00', 10);
 
-END;
+-- 10. SESIÓN ACTIVA
+-- Corrección clave: Usamos '-infinity' para que C# detecte que es la fecha default
+INSERT INTO public."Sesiones" ("FechaHoraInicio", "FechaHoraFin", "UsuarioNombreUsuario")
+VALUES ('2025-11-13 08:00:00', '-infinity', 'jgomez');
+
+COMMIT;

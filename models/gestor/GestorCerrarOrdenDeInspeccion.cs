@@ -27,6 +27,8 @@ namespace PPAI_backend.models.entities
 
         private string _nombreEstadoObtenido = string.Empty;
 
+        private string observacion = string.Empty;
+
         private Empleado? empleado;
 
         public GestorCerrarOrdenDeInspeccion(
@@ -99,9 +101,13 @@ namespace PPAI_backend.models.entities
                 .Include(oi => oi.Empleado)
                 .Include(oi => oi.Estado)
                 .Include(oi => oi.EstacionSismologica)
-                .ThenInclude(es => es.Sismografo)
+                    .ThenInclude(es => es.Sismografo)
+                        // AGREGADO 1: Cargar el historial del sismógrafo
+                        .ThenInclude(s => s.CambioEstado) 
+                            // AGREGADO 2: Cargar el nombre del estado del historial
+                            .ThenInclude(ce => ce.Estado) 
                 .Include(oi => oi.CambioEstado)
-                .ThenInclude(ce => ce.Estado)
+                    .ThenInclude(ce => ce.Estado)
                 .FirstOrDefaultAsync(oi => oi.NumeroOrden == numeroOrden);
 
             if (ordenSeleccionada == null)
@@ -112,8 +118,8 @@ namespace PPAI_backend.models.entities
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para tomar la observación.");
-            ordenSeleccionada.ObservacionCierre = observacion;
-
+            
+            this.observacion = observacion;
         }
 
         public async Task<List<MotivoFueraDeServicio>> BuscarMotivoFueraDeServicio()
@@ -148,19 +154,18 @@ namespace PPAI_backend.models.entities
             if (ordenSeleccionada == null)
                 throw new Exception("No ha seleccionado ninguna orden de inspeccion.");
 
-            if (string.IsNullOrWhiteSpace(ordenSeleccionada.ObservacionCierre))
+            if (string.IsNullOrWhiteSpace(this.observacion)) 
                 throw new Exception("Debe ingresar una observación para cerrar la orden.");
 
-            if (motivosSeleccionados == null)
+            if (motivosSeleccionados == null || motivosSeleccionados.Count == 0)
                 throw new Exception("Debe seleccionar al menos un motivo.");
-        }
-        public async Task BuscarEstadoCerrada()
+        }        public async Task BuscarEstadoCerrada()
         {
             var estadoCerrada = await _context.Estados
-                .FirstOrDefaultAsync(e => e.esAmbitoOrden() && e.esEstadoCerrada());
+            .FirstOrDefaultAsync(e => e.Ambito == "OrdenDeInspeccion" && e.Nombre == "Cerrada");
 
             if (estadoCerrada == null)
-                throw new Exception("No se encontró el estado 'Cerrada' con ámbito 'OrdenDeInspeccion'.");
+                throw new Exception("No se encontró el estado 'Cerrada'.");
         }
 
         public async Task<string> CerrarOrdenInspeccion()
@@ -174,8 +179,10 @@ namespace PPAI_backend.models.entities
             if (estadoCerrada == null)
                 throw new Exception("No se encontró el estado 'Cerrada'.");
 
-            ordenSeleccionada.cerrar(estadoCerrada, motivosSeleccionados, DateTime.Now);
-            _ordenProcesada = ordenSeleccionada; // Guardar la orden procesada
+            // CAMBIO AQUÍ: Agregamos 'this.observacion' como 4to parámetro
+            ordenSeleccionada.cerrar(estadoCerrada, motivosSeleccionados, DateTime.UtcNow, this.observacion);
+            
+            _ordenProcesada = ordenSeleccionada; 
 
             await _context.SaveChangesAsync();
 
@@ -188,8 +195,7 @@ namespace PPAI_backend.models.entities
                 throw new Exception("No hay orden seleccionada.");
 
             var estadoFueraServicio = await _context.Estados
-                .FirstOrDefaultAsync(e => e.esAmbitoSismografo() && e.estadoFueraServicio());
-
+                .FirstOrDefaultAsync(e => e.Ambito == "Sismografo" && (e.Nombre == "Fuera de Servicio" || e.Nombre == "FueraDeServicio"));
             if (estadoFueraServicio == null)
                 throw new Exception("No se encontró el estado 'Fuera de servicio' con ámbito 'Sismógrafo'.");
 
@@ -217,7 +223,7 @@ namespace PPAI_backend.models.entities
 
                 var motivo = new MotivoFueraDeServicio
                 {
-                    Id = baseMotivo.Id,
+                    Id = 0,
                     TipoMotivo = baseMotivo.TipoMotivo,
                     Comentario = dto.Comentario ?? ""
                 };
@@ -308,7 +314,7 @@ namespace PPAI_backend.models.entities
         public class DatosOI
         {
             public int Numero { get; set; }
-            public DateTime FechaFin { get; set; }
+            public DateTime? FechaFin { get; set; }
             public string NombreEstacion { get; set; } = string.Empty;
             public int IdSismografo { get; set; }
         }

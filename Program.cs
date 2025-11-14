@@ -445,6 +445,93 @@ app.MapPost("/buscar-estado-fuera-servicio", async (BuscarEstadoFueraServicioReq
 });
 
 
+
+app.MapGet("/monitores", async (ApplicationDbContext context) =>
+{
+    try
+    {
+        var ordenesCerradas = await context.OrdenesDeInspeccion
+            .Include(oi => oi.Estado)
+            .Include(oi => oi.EstacionSismologica)
+                .ThenInclude(es => es.Sismografo)
+                    .ThenInclude(s => s.CambioEstado)
+                        .ThenInclude(ce => ce.Estado)
+            .Include(oi => oi.EstacionSismologica)
+                .ThenInclude(es => es.Sismografo)
+                    .ThenInclude(s => s.CambioEstado)
+                        .ThenInclude(ce => ce.Motivos)
+                            .ThenInclude(m => m.TipoMotivo)
+            .Include(oi => oi.CambioEstado)
+                .ThenInclude(ce => ce.Estado)
+            .Where(oi => oi.Estado.Nombre == "Cerrada")
+            .OrderByDescending(oi => oi.FechaHoraFinalizacion ?? oi.FechaHoraInicio)
+            .Take(10)
+            .ToListAsync();
+
+        var monitores = new List<object>();
+
+        foreach (var orden in ordenesCerradas)
+        {
+            var sismografo = orden.EstacionSismologica?.Sismografo;
+            if (sismografo == null) continue;
+
+
+            var cambioEstadoFS = sismografo.CambioEstado
+                .Where(ce => ce.Estado.Nombre.ToLower() == "fuera de servicio" || 
+                            ce.Estado.Nombre.ToLower() == "fueradeservicio")
+                .OrderByDescending(ce => ce.FechaHoraInicio)
+                .FirstOrDefault();
+
+            if (cambioEstadoFS != null)
+            {
+                var motivos = cambioEstadoFS.Motivos.Select(m => m.TipoMotivo.Descripcion).ToList();
+                var comentarios = cambioEstadoFS.Motivos.Select(m => m.Comentario ?? "").ToList();
+
+                monitores.Add(new
+                {
+                    identificadorSismografo = sismografo.IdentificadorSismografo,
+                    nombreEstacion = orden.EstacionSismologica.Nombre,
+                    estadoActual = cambioEstadoFS.Estado.Nombre,
+                    fechaUltimaActualizacion = cambioEstadoFS.FechaHoraInicio,
+                    horaUltimaActualizacion = cambioEstadoFS.FechaHoraInicio,
+                    motivos = motivos,
+                    comentarios = comentarios,
+                    mensaje = $"Sismógrafo {sismografo.IdentificadorSismografo} fuera de servicio"
+                });
+            }
+        }
+
+
+        var responsables = await context.Empleados
+            .Include(e => e.Rol)
+            .Where(e => e.Rol != null && e.Rol.Descripcion == "Responsable de Reparación")
+            .Select(e => e.Mail)
+            .ToListAsync();
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Datos de monitores obtenidos correctamente",
+            data = new
+            {
+                monitores = monitores,
+                responsablesReparacion = responsables
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error en /monitores: {ex.Message}");
+        return Results.BadRequest(new
+        {
+            success = false,
+            message = "Error al obtener datos de monitores",
+            error = ex.Message
+        });
+    }
+});
+
+
 app.Run();
 
 
@@ -453,11 +540,11 @@ app.Run();
 // {
 //     using var scope = services.CreateScope();
 //     var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoaderService>();
-// 
+//
 //     try
 //     {
 //         await dataLoader.LoadAllDataAsync("datos/datos.json");
-// 
+//
 //         foreach (var usuario in dataLoader.Usuarios)
 //         {
 //             if (usuario.Empleado == null)
@@ -465,10 +552,10 @@ app.Run();
 //                 Console.WriteLine($" Usuario {usuario.NombreUsuario} no tiene empleado asignado");
 //             }
 //         }
-// 
+//
 //         var usuarioRI = dataLoader.Usuarios.FirstOrDefault(u =>
 //             u.Empleado?.Rol?.Descripcion == "Responsable de Inspección");
-// 
+//
 //         if (usuarioRI != null)
 //         {
 //             var sesionActiva = new Sesion
@@ -477,10 +564,10 @@ app.Run();
 //                 FechaHoraFin = default,
 //                 Usuario = usuarioRI
 //             };
-// 
+//
 //             dataLoader.Sesiones.Add(sesionActiva);
 //         }
-// 
+//
 //         Console.WriteLine(" Relaciones entre entidades configuradas correctamente");
 //         Console.WriteLine($"Sesión activa configurada para: {usuarioRI?.Empleado?.Nombre} {usuarioRI?.Empleado?.Apellido}");
 //     }

@@ -450,6 +450,9 @@ app.MapGet("/monitores", async (ApplicationDbContext context) =>
 {
     try
     {
+        Console.WriteLine("🔍 Iniciando consulta a /monitores");
+        
+        // Obtener órdenes cerradas con todos los includes necesarios
         var ordenesCerradas = await context.OrdenesDeInspeccion
             .Include(oi => oi.Estado)
             .Include(oi => oi.EstacionSismologica)
@@ -461,52 +464,106 @@ app.MapGet("/monitores", async (ApplicationDbContext context) =>
                     .ThenInclude(s => s.CambioEstado)
                         .ThenInclude(ce => ce.Motivos)
                             .ThenInclude(m => m.TipoMotivo)
-            .Include(oi => oi.CambioEstado)
-                .ThenInclude(ce => ce.Estado)
             .Where(oi => oi.Estado.Nombre == "Cerrada")
             .OrderByDescending(oi => oi.FechaHoraFinalizacion ?? oi.FechaHoraInicio)
             .Take(10)
             .ToListAsync();
 
+        //Console.WriteLine($"📊 Órdenes cerradas encontradas: {ordenesCerradas.Count}");
+
         var monitores = new List<object>();
 
         foreach (var orden in ordenesCerradas)
         {
+            //Console.WriteLine($"🔎 Procesando orden {orden.NumeroOrden}");
+            
             var sismografo = orden.EstacionSismologica?.Sismografo;
-            if (sismografo == null) continue;
+            if (sismografo == null)
+            {
+                //Console.WriteLine($"⚠️ Orden {orden.NumeroOrden}: No tiene sismógrafo");
+                continue;
+            }
 
+            //Console.WriteLine($"   Sismógrafo: {sismografo.IdentificadorSismografo}");
+            //Console.WriteLine($"   Cambios de estado: {sismografo.CambioEstado?.Count ?? 0}");
 
-            var cambioEstadoFS = sismografo.CambioEstado
-                .Where(ce => ce.Estado.Nombre.ToLower() == "fuera de servicio" || 
-                            ce.Estado.Nombre.ToLower() == "fueradeservicio")
+            // Buscar el cambio de estado "Fuera de Servicio" más reciente
+            var cambioEstadoFS = sismografo.CambioEstado?
+                .Where(ce => ce.Estado != null && 
+                            (ce.Estado.Nombre.ToLower() == "fuera de servicio" || 
+                             ce.Estado.Nombre.ToLower() == "fueradeservicio"))
                 .OrderByDescending(ce => ce.FechaHoraInicio)
                 .FirstOrDefault();
 
-            if (cambioEstadoFS != null)
+            if (cambioEstadoFS == null)
             {
-                var motivos = cambioEstadoFS.Motivos.Select(m => m.TipoMotivo.Descripcion).ToList();
-                var comentarios = cambioEstadoFS.Motivos.Select(m => m.Comentario ?? "").ToList();
+                //Console.WriteLine($"⚠️ Orden {orden.NumeroOrden}: No tiene cambio a 'Fuera de Servicio'");
+                //Console.WriteLine($"   Estados disponibles: {string.Join(", ", sismografo.CambioEstado?.Select(ce => ce.Estado?.Nombre ?? "null") ?? new List<string>())}");
+                continue;
+            }
 
-                monitores.Add(new
+            //Console.WriteLine($"   ✅ Encontrado cambio FS: {cambioEstadoFS.FechaHoraInicio}");
+            //Console.WriteLine($"   Motivos: {cambioEstadoFS.Motivos?.Count ?? 0}");
+
+            var motivos = cambioEstadoFS.Motivos?
+                .Select(m => m.TipoMotivo?.Descripcion ?? "Sin descripción")
+                .ToList() ?? new List<string>();
+                
+            var comentarios = cambioEstadoFS.Motivos?
+                .Select(m => m.Comentario ?? "")
+                .ToList() ?? new List<string>();
+
+            monitores.Add(new
+            {
+                tipo = "sismografo_fuera_de_servicio",
+                timestamp = cambioEstadoFS.FechaHoraInicio,
+
+                datos = new
                 {
-                    identificadorSismografo = sismografo.IdentificadorSismografo,
-                    nombreEstacion = orden.EstacionSismologica.Nombre,
-                    estadoActual = cambioEstadoFS.Estado.Nombre,
-                    fechaUltimaActualizacion = cambioEstadoFS.FechaHoraInicio,
-                    horaUltimaActualizacion = cambioEstadoFS.FechaHoraInicio,
+                    sismografo = new
+                    {
+                        identificador = sismografo.IdentificadorSismografo,
+                        estado = cambioEstadoFS.Estado.Nombre,
+                        fechaCambioEstado = cambioEstadoFS.FechaHoraInicio
+                        },
+                    cierre = new
+                    {
+                    fechaCierre = (DateTime?)null,
                     motivos = motivos,
                     comentarios = comentarios,
-                    mensaje = $"Sismógrafo {sismografo.IdentificadorSismografo} fuera de servicio"
-                });
-            }
+                    destinatarios = new List<string>()
+                    },
+
+                    notificacion = new
+                    {
+                        mensaje = $"El sismógrafo {sismografo.IdentificadorSismografo} fue marcado como 'Fuera de Servicio'.",
+                        estado = "generada",
+                        tipoNotificacion = "warning"
+                    }
+                },
+
+                metadatos = new
+                {
+                    sistema = "Backend Sismológico",
+                    modulo = "Monitores",
+                    version = "1.0"
+                }
+
+                
+
+            });
         }
 
+        //Console.WriteLine($"✅ Total monitores a enviar: {monitores.Count}");
 
+        // Obtener responsables de reparación
         var responsables = await context.Empleados
             .Include(e => e.Rol)
-            .Where(e => e.Rol != null && e.Rol.Descripcion == "Responsable de Reparación")
+            .Where(e => e.Rol != null && e.Rol.Descripcion == "Tecnico de Reparaciones")
             .Select(e => e.Mail)
             .ToListAsync();
+
+        //Console.WriteLine($"👥 Responsables encontrados: {responsables.Count}");
 
         return Results.Ok(new
         {
@@ -521,16 +578,22 @@ app.MapGet("/monitores", async (ApplicationDbContext context) =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error en /monitores: {ex.Message}");
+        //Console.WriteLine($"❌ ERROR en /monitores: {ex.Message}");
+        //Console.WriteLine($"   Stack: {ex.StackTrace}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"   Inner: {ex.InnerException.Message}");
+        }
+        
         return Results.BadRequest(new
         {
             success = false,
             message = "Error al obtener datos de monitores",
-            error = ex.Message
+            error = ex.Message,
+            innerError = ex.InnerException?.Message
         });
     }
 });
-
 
 app.Run();
 

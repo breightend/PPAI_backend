@@ -102,10 +102,8 @@ namespace PPAI_backend.models.entities
                 .Include(oi => oi.Estado)
                 .Include(oi => oi.EstacionSismologica)
                     .ThenInclude(es => es.Sismografo)
-                        // AGREGADO 1: Cargar el historial del sismógrafo
-                        .ThenInclude(s => s.CambioEstado) 
-                            // AGREGADO 2: Cargar el nombre del estado del historial
-                            .ThenInclude(ce => ce.Estado) 
+                        .ThenInclude(s => s.CambioEstado)
+                            .ThenInclude(ce => ce.Estado)
                 .Include(oi => oi.CambioEstado)
                     .ThenInclude(ce => ce.Estado)
                 .FirstOrDefaultAsync(oi => oi.NumeroOrden == numeroOrden);
@@ -118,7 +116,7 @@ namespace PPAI_backend.models.entities
         {
             if (ordenSeleccionada == null)
                 throw new Exception("No hay una orden seleccionada para tomar la observación.");
-            
+
             this.observacion = observacion;
         }
 
@@ -154,12 +152,13 @@ namespace PPAI_backend.models.entities
             if (ordenSeleccionada == null)
                 throw new Exception("No ha seleccionado ninguna orden de inspeccion.");
 
-            if (string.IsNullOrWhiteSpace(this.observacion)) 
+            if (string.IsNullOrWhiteSpace(this.observacion))
                 throw new Exception("Debe ingresar una observación para cerrar la orden.");
 
             if (motivosSeleccionados == null || motivosSeleccionados.Count == 0)
                 throw new Exception("Debe seleccionar al menos un motivo.");
-        }        public async Task BuscarEstadoCerrada()
+        }
+        public async Task BuscarEstadoCerrada()
         {
             var estadoCerrada = await _context.Estados
             .FirstOrDefaultAsync(e => e.Ambito == "OrdenDeInspeccion" && e.Nombre == "Cerrada");
@@ -181,8 +180,8 @@ namespace PPAI_backend.models.entities
 
             // CAMBIO AQUÍ: Agregamos 'this.observacion' como 4to parámetro
             ordenSeleccionada.cerrar(estadoCerrada, motivosSeleccionados, DateTime.UtcNow, this.observacion);
-            
-            _ordenProcesada = ordenSeleccionada; 
+
+            _ordenProcesada = ordenSeleccionada;
 
             await _context.SaveChangesAsync();
 
@@ -210,16 +209,28 @@ namespace PPAI_backend.models.entities
 
         public async Task TomarMotivoFueraDeServicioYComentario(List<MotivoSeleccionadoConComentarioDTO> motivosDto)
         {
+            Console.WriteLine($"🔍 TomarMotivoFueraDeServicioYComentario - Recibidos {motivosDto.Count} motivos");
+            foreach (var dto in motivosDto)
+            {
+                Console.WriteLine($"🔍 Motivo recibido - ID: {dto.IdMotivo}, Comentario: '{dto.Comentario}'");
+            }
+
             motivosSeleccionados.Clear();
             var todosLosMotivos = await _context.MotivosFueraDeServicio
                 .Include(m => m.TipoMotivo)
                 .ToListAsync();
 
+            Console.WriteLine($"🔍 Motivos disponibles en BD: {todosLosMotivos.Count}");
+
             foreach (var dto in motivosDto)
             {
                 var baseMotivo = todosLosMotivos.FirstOrDefault(m => m.Id == dto.IdMotivo);
                 if (baseMotivo == null)
+                {
+                    Console.WriteLine($"❌ ERROR: Motivo con ID {dto.IdMotivo} no encontrado en BD");
                     throw new Exception($"Motivo con ID {dto.IdMotivo} no encontrado.");
+                }
+                Console.WriteLine($"✅ Motivo encontrado - ID: {baseMotivo.Id}, Tipo: {baseMotivo.TipoMotivo.Descripcion}");
 
                 var motivo = new MotivoFueraDeServicio
                 {
@@ -246,7 +257,7 @@ namespace PPAI_backend.models.entities
                 .Where(e => e.Rol != null)
                 .ToListAsync();
 
-            _mailsResponsablesReparacion.Clear(); 
+            _mailsResponsablesReparacion.Clear();
 
             foreach (var emp in empleados)
             {
@@ -274,25 +285,35 @@ namespace PPAI_backend.models.entities
             if (_ordenProcesada == null)
                 throw new Exception("No hay orden procesada para notificar.");
 
+            Console.WriteLine("=== GestorCerrarOrdenDeInspeccion.Notificar ===");
+            Console.WriteLine($"Notificando a {_observadores.Count} observadores");
+
+            var fechaCambioEstado = _ordenProcesada.EstacionSismologica.Sismografo.CambioEstado
+                .Where(ce => ce.Estado.Nombre.ToLower().Contains("fuera"))
+                .OrderByDescending(ce => ce.FechaHoraInicio)
+                .FirstOrDefault()?.FechaHoraInicio ?? DateTime.UtcNow;
+
             foreach (var obs in _observadores)
             {
+                Console.WriteLine($"Notificando a observador: {obs.GetType().Name}");
                 obs.Actualizar(
                     _ordenProcesada.EstacionSismologica.Sismografo.IdentificadorSismografo,
                     _nombreEstadoObtenido,
-                    DateTime.Now,
+                    fechaCambioEstado,
                     motivosSeleccionados.Select(m => m.TipoMotivo.Descripcion).ToList(),
                     motivosSeleccionados.Select(m => m.Comentario ?? "").ToList(),
                     _mailsResponsablesReparacion
                 );
             }
+            Console.WriteLine(" Notificación completada");
         }
 
         public async Task EnviarNotificacionPorMail()
         {
             if (_ordenProcesada != null)
             {
-                await ObtenerMailsResponsableReparacion(); 
-                Notificar(); 
+                await ObtenerMailsResponsableReparacion();
+                Notificar();
             }
         }
 

@@ -173,38 +173,32 @@ app.MapGet("/empleado-logueado", async (GestorCerrarOrdenDeInspeccion gestor) =>
     }
 });
 
-app.MapGet("/motivos", async (GestorCerrarOrdenDeInspeccion gestor) =>
+app.MapGet("/motivos", async (ApplicationDbContext context) =>
 {
     try
     {
-        var motivos = await gestor.BuscarMotivoFueraDeServicio();
+        var tiposMotivo = await context.TiposMotivo.ToListAsync();
 
-        if (motivos == null || motivos.Count == 0)
+        if (tiposMotivo == null || tiposMotivo.Count == 0)
         {
             return Results.Ok(new
             {
                 success = true,
-                message = "No se encontraron motivos fuera de servicio",
+                message = "No se encontraron tipos de motivo",
                 data = new List<object>()
             });
         }
 
-        var motivosResponse = motivos.Select(m => new
+        var motivosResponse = tiposMotivo.Select(tm => new
         {
-            id = m.Id,
-            descripcion = m.Descripcion,
-            tipoMotivo = new
-            {
-                id = m.TipoMotivo.Id,
-                descripcion = m.TipoMotivo.Descripcion
-            },
-            comentario = m.Comentario
+            id = tm.Id,
+            descripcion = tm.Descripcion
         }).ToList();
 
         return Results.Ok(new
         {
             success = true,
-            message = "Motivos obtenidos desde el gestor con estructura TipoMotivo",
+            message = "Tipos de motivo obtenidos correctamente",
             data = motivosResponse
         });
     }
@@ -265,32 +259,6 @@ app.MapPost("/motivos-seleccionados", async (MotivosSeleccionadosDTO request, Ge
     }
 });
 
-app.MapPost("/confirmar-cierre", async (ConfirmarRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
-{
-    try
-    {
-        ConfirmarRequest confirmarRequest = new ConfirmarRequest
-        {
-            confirmado = request.confirmado
-        };
-        if (!confirmarRequest.confirmado)
-        {
-            return Results.BadRequest("El cierre no ha sido confirmado.");
-        }
-        gestor.Confirmar();
-
-        await gestor.EnviarNotificacionPorMail();
-
-        return Results.Ok("Cierre confirmado correctamente y notificaciones enviadas.");
-
-
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest($"Error al confirmar cierre: {ex.Message}");
-    }
-});
-
 
 
 app.MapPost("/agregar-observacion", async (ObservationRequest request, GestorCerrarOrdenDeInspeccion gestor) =>
@@ -311,30 +279,40 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
 {
     try
     {
+        Console.WriteLine($"🎯 Cerrando orden {request.OrdenId} - EnviarMail: {request.EnviarMail} - EnviarMonitores: {request.EnviarMonitores}");
         await gestor.TomarOrdenSeleccionada(request.OrdenId);
         gestor.TomarObservacion(request.Observation);
         await gestor.TomarMotivoFueraDeServicioYComentario(request.Motivos);
         gestor.ValidarObsYComentario();
         await gestor.BuscarEstadoCerrada();
-        
-        if (request.EnviarMail) {
+
+        if (request.EnviarMail)
+        {
+            Console.WriteLine("Suscribiendo observador de mail...");
             gestor.Suscribir(obsMail);
         }
 
-        if (request.EnviarMonitores) {
+        if (request.EnviarMonitores)
+        {
+            Console.WriteLine("Suscribiendo observador de pantalla...");
             gestor.Suscribir(obsPantalla);
         }
 
         gestor.ValidarObsYComentario();
         await gestor.BuscarEstadoCerrada();
 
-        var resultado = await gestor.CerrarOrdenInspeccion();
         var orden = gestor.GetOrdenSeleccionada();
         if (orden == null)
             return Results.BadRequest("No se encontró la orden seleccionada.");
         var sismografo = orden.EstacionSismologica?.Sismografo;
         if (sismografo == null)
             return Results.BadRequest("No se encontró el sismógrafo asociado a la orden.");
+
+        var responsables = await gestor.ObtenerMailsResponsableReparacion();
+        Console.WriteLine($" Responsables encontrados: {string.Join(", ", responsables)}");
+
+        await gestor.BuscarEstadoFueraServicio(sismografo);
+
         var cambioEstadoFS = sismografo.CambioEstado
             .Where(ce => ce.Estado.Nombre.ToLower() == "fuera de servicio")
             .OrderByDescending(ce => ce.FechaHoraInicio)
@@ -350,9 +328,12 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
             },
             comentario = m.Comentario
         }).ToList();
-        await gestor.BuscarEstadoFueraServicio(sismografo);
-        var responsables = await gestor.ObtenerMailsResponsableReparacion();
+
+        var resultado = await gestor.CerrarOrdenInspeccion();
+
+        Console.WriteLine(" Iniciando envío de notificaciones...");
         await gestor.EnviarNotificacionPorMail();
+        Console.WriteLine("Notificaciones enviadas correctamente");
 
 
         return Results.Ok(new
@@ -370,11 +351,11 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
     }
     catch (Exception ex)
     {
-        var mensajeReal = ex.InnerException != null 
-            ? $"{ex.Message} -> DETALLES: {ex.InnerException.Message}" 
+        var mensajeReal = ex.InnerException != null
+            ? $"{ex.Message} -> DETALLES: {ex.InnerException.Message}"
             : ex.Message;
 
-        Console.WriteLine($" ERROR CRÍTICO EN BD: {mensajeReal}"); 
+        Console.WriteLine($" ERROR CRÍTICO EN BD: {mensajeReal}");
         return Results.BadRequest($"Error al cerrar orden: {mensajeReal}");
     }
 });
@@ -445,101 +426,128 @@ app.MapPost("/buscar-estado-fuera-servicio", async (BuscarEstadoFueraServicioReq
 
 
 
-app.MapGet("/monitores", async (ApplicationDbContext context, HttpRequest req) =>
+app.MapGet("/monitores", async (int? ordenId, GestorCerrarOrdenDeInspeccion gestor, ObservadorPantallaCRSS obsPantalla) =>
 {
     try
     {
-        
-        if (!req.Query.TryGetValue("ordenId", out var ordenIdStr) || 
-            !int.TryParse(ordenIdStr, out int ordenId))
+        if (!ordenId.HasValue)
         {
-            return Results.BadRequest(new
-            {
-                success = false,
-                message = "ordenId es obligatorio"
-            });
+            return Results.BadRequest("Debe proporcionar el parámetro 'ordenId' en la URL. Ejemplo: /monitores?ordenId=3422");
         }
 
-        var orden = await context.OrdenesDeInspeccion
-            .Include(o => o.Estado)
-            .Include(o => o.EstacionSismologica)
-                .ThenInclude(es => es.Sismografo)
-                    .ThenInclude(s => s.CambioEstado)
-                        .ThenInclude(ce => ce.Estado)
-            .Include(o => o.EstacionSismologica)
-                .ThenInclude(es => es.Sismografo)
-                    .ThenInclude(s => s.CambioEstado)
-                        .ThenInclude(ce => ce.Motivos)
-                            .ThenInclude(m => m.TipoMotivo)
-            .FirstOrDefaultAsync(o => o.NumeroOrden == ordenId);
+        Console.WriteLine($"📱 Consultando monitores para orden {ordenId.Value}...");
+
+        await gestor.TomarOrdenSeleccionada(ordenId.Value);
+        var orden = gestor.GetOrdenSeleccionada();
 
         if (orden == null)
-            return Results.NotFound(new { success = false, message = "Orden no encontrada" });
+            return Results.BadRequest("No se encontró la orden seleccionada.");
+
+        if (orden.Estado?.Nombre?.ToLower() != "cerrada")
+        {
+            return Results.BadRequest("Esta orden no está cerrada. Solo se pueden consultar monitores de órdenes cerradas.");
+        }
 
         var sismografo = orden.EstacionSismologica?.Sismografo;
-
         if (sismografo == null)
-            return Results.BadRequest(new { success = false, message = "No se encontró sismógrafo" });
+            return Results.BadRequest("No se encontró el sismógrafo asociado a la orden.");
 
-        var cambioFS = sismografo.CambioEstado?
-            .Where(ce => ce.Estado.Nombre.ToLower().Contains("fuera de servicio"))
+        var responsables = await gestor.ObtenerMailsResponsableReparacion();
+
+        Console.WriteLine($"📱 Responsables obtenidos: {responsables?.Count ?? 0}");
+        if (responsables?.Count == 0)
+        {
+            Console.WriteLine("📱 ⚠️ No se encontraron responsables");
+        }
+
+        var cambioEstadoFS = sismografo.CambioEstado
+            .Where(ce => ce.Estado.Nombre.ToLower().Contains("fuera"))
             .OrderByDescending(ce => ce.FechaHoraInicio)
             .FirstOrDefault();
 
-        if (cambioFS == null)
-            return Results.BadRequest(new { success = false, message = "El sismógrafo no está fuera de servicio" });
-
-        var motivos = cambioFS.Motivos?.Select(m => m.TipoMotivo.Descripcion).ToList() ?? new List<string>();
-        var comentarios = cambioFS.Motivos?.Select(m => m.Comentario ?? "").ToList() ?? new List<string>();
-
-        var responsables = await context.Empleados
-            .Include(e => e.Rol)
-            .Where(e => e.Rol.Descripcion == "Tecnico de Reparaciones")
-            .Select(e => e.Mail)
-            .ToListAsync();
-
-        var respuesta = new
+        if (cambioEstadoFS == null)
         {
-            sismografo = new
-            {
-                identificador = sismografo.IdentificadorSismografo,
-                estado = cambioFS.Estado.Nombre,
-                fechaCambioEstado = cambioFS.FechaHoraInicio,
-                fechaCierre = (DateTime?)null
-            },
+            Console.WriteLine("📱 ⚠️ No se encontró cambio de estado 'fuera de servicio', buscando cualquier cambio...");
+            cambioEstadoFS = sismografo.CambioEstado
+                .OrderByDescending(ce => ce.FechaHoraInicio)
+                .FirstOrDefault();
+        }
 
-            pantalla = new
-            {
-                mensaje = $"El sismógrafo {sismografo.IdentificadorSismografo} fue marcado como fuera de servicio.",
-                fecha = cambioFS.FechaHoraInicio,
-                comentarios = comentarios,
-                motivos = motivos,
-                responsablesReparacion = responsables
-            },
+        if (cambioEstadoFS == null)
+            return Results.BadRequest("No se encontró información de cambio de estado para el sismógrafo.");
 
-            notificacion = new
-            {
-                totalDestinatarios = responsables.Count,
-                prioridad = "alta",
-                requiereAccion = true,
-                mailsNotificados = responsables
-            }
-        };
+        Console.WriteLine($"📱 Cambio estado encontrado: {cambioEstadoFS.Estado.Nombre}");
+        Console.WriteLine($"📱 Motivos en cambio estado: {cambioEstadoFS.Motivos?.Count ?? 0}");
+
+        // Preparar motivos - siempre asegurar que hay al menos uno
+        var motivos = new List<string>();
+
+        if (cambioEstadoFS.Motivos != null && cambioEstadoFS.Motivos.Count > 0)
+        {
+            motivos = cambioEstadoFS.Motivos.Select(m =>
+                $"{m.TipoMotivo?.Descripcion ?? "Motivo"}: {m.Comentario ?? "Sin comentario"}").ToList();
+        }
+
+        // Asegurar que siempre hay al menos un motivo
+        if (motivos.Count == 0)
+        {
+            motivos.Add("Motivo registrado en el cierre de la orden");
+            Console.WriteLine("📱 ⚠️ No se encontraron motivos específicos, usando motivo genérico");
+        }
+
+        var comentarios = new List<string>();
+        if (!string.IsNullOrEmpty(orden.ObservacionCierre))
+        {
+            comentarios.Add(orden.ObservacionCierre);
+        }
+        else
+        {
+            comentarios.Add("Sin observaciones adicionales");
+        }
+
+        Console.WriteLine($"📱 Motivos preparados ({motivos.Count}): [{string.Join(", ", motivos)}]");
+        Console.WriteLine($"📱 Comentarios preparados ({comentarios.Count}): [{string.Join(", ", comentarios)}]");
+
+        obsPantalla.Actualizar(
+            identificadorSismografo: sismografo.IdentificadorSismografo,
+            nombreEstado: cambioEstadoFS.Estado.Nombre,
+            fecha: cambioEstadoFS.FechaHoraInicio,
+            motivos: motivos,
+            comentarios: comentarios,
+            destinatarios: responsables ?? new List<string>()
+        );
+
+        var pantallaResponse = obsPantalla.GetPantallaResponseDTO();
+
+        Console.WriteLine($"Mails notificados encontrados: {string.Join(", ", obsPantalla.GetDestinatarios())}");
 
         return Results.Ok(new
         {
             success = true,
-            message = "Datos obtenidos correctamente",
-            data = respuesta
+            message = "Información de monitores obtenida exitosamente",
+            data = new
+            {
+                sismografo = new
+                {
+                    identificador = obsPantalla.GetIdentificadorSismografo(),
+                    estado = obsPantalla.GetNombreEstado(),
+                    fechaCambioEstado = obsPantalla.GetFechaCambioEstado(),
+                    fechaCierre = orden.FechaHoraCierre
+                },
+                pantalla = pantallaResponse,
+                notificacion = new
+                {
+                    mailsNotificados = obsPantalla.GetDestinatarios(),
+                    totalDestinatarios = obsPantalla.GetDestinatarios().Count,
+                    requiereAccion = obsPantalla.GetNombreEstado().ToLower().Contains("fuera"),
+                    prioridad = obsPantalla.GetNombreEstado().ToLower().Contains("fuera") ? "alta" : "normal"
+                }
+            }
         });
     }
     catch (Exception ex)
     {
-        return Results.BadRequest(new
-        {
-            success = false,
-            error = ex.Message
-        });
+        return Results.BadRequest($"Error al obtener información de monitores: {ex.Message}");
     }
 });
 
@@ -592,4 +600,3 @@ app.Run();
 
 
 
-app.Run();

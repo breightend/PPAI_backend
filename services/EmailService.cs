@@ -22,10 +22,14 @@ namespace PPAI_backend.services
             _sendGridClient = sendGridClient;
             _configuration = configuration;
             _logger = logger;
-            
-    
-            _fromEmail = _configuration["SendGrid:FromEmail"] ?? "noreply@sismologia.com";
-            _fromName = _configuration["SendGrid:FromName"] ?? "Sistema de Sismología";
+
+
+            _fromEmail = Environment.GetEnvironmentVariable("SENDGRID_FROM_EMAIL")
+                ?? _configuration["SendGrid:FromEmail"]
+                ?? "noreply@example.com";
+            _fromName = Environment.GetEnvironmentVariable("SENDGRID_FROM_NAME")
+                ?? _configuration["SendGrid:FromName"]
+                ?? "Sistema de Sismología";
         }
 
         public async Task NotificarCierreOrdenInspeccionAsync(string mensaje, List<string> destinatarios)

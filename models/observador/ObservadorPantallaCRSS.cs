@@ -11,7 +11,6 @@ namespace PPAI_backend.models.observador
 {
     public class ObservadorPantallaCRSS : IObservadorNotificacion
     {
-        // Estado interno del observador
         private PantallaCCRS _pantalla;
         private int _identificadorSismografo;
         private string _nombreEstado;
@@ -21,7 +20,6 @@ namespace PPAI_backend.models.observador
         private List<string> _comentarios;
         private List<string> _destinatarios;
 
-        // Constructor
         public ObservadorPantallaCRSS()
         {
             _pantalla = new PantallaCCRS();
@@ -31,10 +29,8 @@ namespace PPAI_backend.models.observador
             _nombreEstado = string.Empty;
         }
 
-        // Implementación de la interfaz IObservadorNotificacion
         public void Actualizar(int identificadorSismografo, string nombreEstado, DateTime fecha, List<string> motivos, List<string> comentarios, List<string> destinatarios)
         {
-            // Actualizar el estado interno usando los setters
             SetIdentificadorSismografo(identificadorSismografo);
             SetNombreEstado(nombreEstado);
             SetFechaCambioEstado(fecha);
@@ -43,20 +39,6 @@ namespace PPAI_backend.models.observador
             SetDestinatarios(destinatarios ?? new List<string>());
             SetFechaCierre(DateTime.Now);
 
-            // Generar el JSON con la información actualizada
-            var mensajeJson = GenerarJsonNotificacion();
-
-            // Actualizar la pantalla CCRS
-            ActualizarPantallaCCRS();
-
-            // Mostrar el JSON generado (en un escenario real se enviaría al frontend)
-            Console.WriteLine($"[PANTALLA CRSS] Notificación JSON generada:");
-            Console.WriteLine(mensajeJson);
-        }
-
-        // Método para generar el JSON de notificación
-        private string GenerarJsonNotificacion()
-        {
             var mensaje = new
             {
                 tipo = "cierre_orden_inspeccion",
@@ -97,24 +79,27 @@ namespace PPAI_backend.models.observador
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            return JsonSerializer.Serialize(mensaje, options);
+            var mensajeJson = JsonSerializer.Serialize(mensaje, options);
+
+            ActualizarPantallaCCRS();
+
+            Console.WriteLine($"[PANTALLA CRSS] Notificación JSON generada:");
+            Console.WriteLine(mensajeJson);
         }
 
-        // Método para actualizar la pantalla CCRS con los datos recibidos
+
+
         private void ActualizarPantallaCCRS()
         {
-            // Usar los métodos Set de la pantalla CCRS
             _pantalla.SetMensaje($"Sismógrafo #{_identificadorSismografo} cambió al estado: {_nombreEstado}");
             _pantalla.SetFecha(_fechaCierre);
             _pantalla.SetMotivos(_motivos);
             _pantalla.SetComentarios(_comentarios);
             _pantalla.SetResponsablesReparacion(_destinatarios);
 
-            // Notificar a la pantalla
             _pantalla.NotificarOrdenDeInspeccion($"Actualización de estado para sismógrafo #{_identificadorSismografo}");
         }
 
-        // Métodos Set privados para actualizar el estado interno
         private void SetIdentificadorSismografo(int identificador)
         {
             _identificadorSismografo = identificador;
@@ -150,7 +135,6 @@ namespace PPAI_backend.models.observador
             _fechaCierre = fechaActual;
         }
 
-        // Métodos Get para acceder al estado interno
         public int GetIdentificadorSismografo() => _identificadorSismografo;
         public string GetNombreEstado() => _nombreEstado;
         public DateTime GetFechaCambioEstado() => _fechaCambioEstado;
@@ -159,19 +143,16 @@ namespace PPAI_backend.models.observador
         public List<string> GetComentarios() => new List<string>(_comentarios);
         public List<string> GetDestinatarios() => new List<string>(_destinatarios);
 
-        // Método para obtener el DTO de la pantalla CCRS
         public PantallaCCRSResponseDTO GetPantallaResponseDTO()
         {
             return _pantalla.GetResponseDTO();
         }
 
-        // Método para obtener la instancia de la pantalla
         public PantallaCCRS GetPantalla()
         {
             return _pantalla;
         }
 
-        // Método para enviar notificación específica (opcional)
         public void EnviarNotificacionEspecifica(string mensajePersonalizado)
         {
             _pantalla.SetMensaje(mensajePersonalizado);

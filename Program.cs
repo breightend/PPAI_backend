@@ -370,12 +370,11 @@ app.MapPost("/cerrar-orden", async (CerrarOrdenRequest request, GestorCerrarOrde
     }
     catch (Exception ex)
     {
-        // ESTO ES NUEVO: Busca el error interno si existe
         var mensajeReal = ex.InnerException != null 
             ? $"{ex.Message} -> DETALLES: {ex.InnerException.Message}" 
             : ex.Message;
 
-        Console.WriteLine($"🔥 ERROR CRÍTICO EN BD: {mensajeReal}"); // Para verlo en la terminal
+        Console.WriteLine($" ERROR CRÍTICO EN BD: {mensajeReal}"); 
         return Results.BadRequest($"Error al cerrar orden: {mensajeReal}");
     }
 });
@@ -450,7 +449,7 @@ app.MapGet("/monitores", async (ApplicationDbContext context, HttpRequest req) =
 {
     try
     {
-        // 1️⃣ Obtener ordenId del query
+        
         if (!req.Query.TryGetValue("ordenId", out var ordenIdStr) || 
             !int.TryParse(ordenIdStr, out int ordenId))
         {
@@ -461,7 +460,6 @@ app.MapGet("/monitores", async (ApplicationDbContext context, HttpRequest req) =
             });
         }
 
-        // 2️⃣ Traer la orden
         var orden = await context.OrdenesDeInspeccion
             .Include(o => o.Estado)
             .Include(o => o.EstacionSismologica)
@@ -483,7 +481,6 @@ app.MapGet("/monitores", async (ApplicationDbContext context, HttpRequest req) =
         if (sismografo == null)
             return Results.BadRequest(new { success = false, message = "No se encontró sismógrafo" });
 
-        // 3️⃣ Último cambio FS
         var cambioFS = sismografo.CambioEstado?
             .Where(ce => ce.Estado.Nombre.ToLower().Contains("fuera de servicio"))
             .OrderByDescending(ce => ce.FechaHoraInicio)
@@ -501,7 +498,6 @@ app.MapGet("/monitores", async (ApplicationDbContext context, HttpRequest req) =
             .Select(e => e.Mail)
             .ToListAsync();
 
-        // 4️⃣ Armar respuesta EXACTA para el front remoto
         var respuesta = new
         {
             sismografo = new
